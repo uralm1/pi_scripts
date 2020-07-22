@@ -1,0 +1,14 @@
+#!/bin/bash
+
+USER=
+PASS=
+USERAGENT="Linux-DUC/2.1.9"
+HOST=host.hopto.org
+NEWIP=1.2.3.4
+
+RESP=$(curl -s -k --user-agent "$USERAGENT" "https://$USER:$PASS@dynupdate.no-ip.com/nic/update?hostname=$HOST&myip=$NEWIP")
+RESP=$(echo $RESP | tr -cd "[:print:]")
+#RESP_A=$(echo $RESP | awk '{ print $1 }')
+
+echo $RESP
+#echo $RESP_A

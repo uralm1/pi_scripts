@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# internet checker and rebooter
+
+mark_file=/var/tmp/i_test.mark
+log_file=/var/tmp/i_test.log
+
+# google dns1
+inet_ip1=2001:4860:4860::8888
+# google dns2
+inet_ip2=2001:4860:4860::8844
+# facebook.com
+inet_ip3=2a03:2880:f10a:83:face:b00c:0:25de
+# yandex.ru
+inet_ip4=2a02:6b8:a::a
+
+function log {
+  echo "$(date '+%F %T') $1" >> $log_file
+}
+
+function check_inet {
+  if ping -6 -c 1 $inet_ip1 &>/dev/null
+  then
+    #echo "ping 1 success"
+    return 0;
+  elif ping -6 -c 2 $inet_ip2 &>/dev/null
+  then
+    #echo "ping 2 success"
+    return 0;
+  elif ping -6 -c 3 $inet_ip3 &>/dev/null
+  then
+    #echo "ping 3 success"
+    return 0;
+  elif ping -6 -c 3 $inet_ip4 &>/dev/null
+  then
+    #echo "ping 4 success"
+    return 0;
+  else
+    #echo "all pings failed"
+    return 1;
+  fi
+}
+
+function mark_reboot {
+  echo "$1" > $mark_file
+  if [ "$1" -eq 1 ]
+  then
+    log "restarting eth1 interface"
+    sleep 1
+    /sbin/dhcpcd -q -k eth1
+    sleep 10
+    /sbin/dhcpcd -q -n eth1
+    sleep 5
+  else
+    log "rebooting the system"
+    sleep 10
+    /sbin/shutdown -r --no-wall now
+  fi
+}
+
+### program start
+sleep $[ ($RANDOM % 60) + 1 ]s
+if check_inet
+then
+  # success, remove marks
+  rm -f $mark_file
+else
+  # failure
+  if [ -r $mark_file ]
+  then
+    # mark file exists
+    mark=$(cat $mark_file)
+    #echo $mark
+    if [ "$mark" -eq 1 ]
+    then
+      # mark1 was set, set mark2 and reboot then
+      mark_reboot 2
+    elif [ "$mark" -eq 2 ]
+    then
+      # mark2 was set, set mark3 and reboot then
+      mark_reboot 3
+    elif [ "$mark" -eq 3 ]
+    then
+      # mark3 was set, just exit and relax
+      log "cant help, no reboots anymore, exited with 1"
+      exit 1
+    else
+      # no marks, set mark1 and reset net
+      mark_reboot 1
+    fi
+  else
+    # no mark file, set mark1 and reset net
+    mark_reboot 1
+  fi
+fi
+exit 0

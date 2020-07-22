@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# search for changed files
+sudo find / -mtime -2 -type f -not -path '/proc/*' -not -path '/sys/*' -not -path '/run/*' -print

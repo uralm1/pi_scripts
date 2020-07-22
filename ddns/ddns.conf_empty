@@ -1,0 +1,18 @@
+###
+
+ipv4=1.2.3.4
+ipv6=$(ip -6 a show dev eth1 scope global | awk 'match($0,/inet6 [a-f0-9\.:]*\/128/){print substr($0,RSTART+6,RLENGTH-10);exit 0;}')
+
+# duckdns.org
+token_duck=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+hostname_duck=test.duckdns.org
+
+# no-ip.com - no ipv6 support/30 day expire
+useragent_noip="Linux-DUC/2.1.9"
+username_noip=user
+password_noip=pass
+hostname_noip=test.ddns.net
+
+# freedns.afraid.org - ipv6 only
+tokenA_afr=xxx
+tokenAAAA_afr=yyy

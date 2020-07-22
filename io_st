@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# report read/write statistics
+uptime
+cat /sys/block/mmcblk0/stat | awk '{printf "Uptime read: %.3f MiB (%.1f%% I/Os merged) written: %.3f MiB (%.1f%% I/Os merged)\n", $3*512/1048576, $2/$1*100, $7*512/1048576, $6/$5*100}'

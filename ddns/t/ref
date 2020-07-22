@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# this doesn't work if symlinks are in path
+BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+#echo $BINDIR
+
+if test -f "$BINDIR/../ddns.conf" ; then
+  . "$BINDIR/../ddns.conf"
+else
+  echo "Error: config file is not found."
+  exit 1
+fi
+
+# duckdns.org
+_dom=`echo $hostname_duck | cut -d'.' -f1`
+uurl_duck="https://www.duckdns.org/update?domains=$_dom&token=$token_duck&ipv6=$ipv6"
+#uurl_duck="https://www.duckdns.org/update?domains=$_dom&token=$token_duck&ipv6=$ipv6&verbose=true"
+echo $uurl_duck
+exit 4
+
+RESP=$(curl -s -m 30 -k $uurl_duck)
+if [ $? -eq 0 ]; then
+  echo "success"
+  echo $RESP
+  if [ "$RESP" == "OK" ]; then
+    echo "equal OK"
+  fi
+else
+  echo "failure"
+fi
+
+exit 0
