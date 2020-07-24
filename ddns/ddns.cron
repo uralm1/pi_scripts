@@ -1,1 +1,1 @@
-*/5 * * * * root /opt/pi_scripts/ddns/u_v6 &>/dev/null
+*/5 * * * * root /opt/ddns/u_v6 &>/dev/null

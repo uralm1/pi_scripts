@@ -1,4 +1,4 @@
-18 1 * * * root /opt/pi_scripts/ddns/i_test &>/dev/null
-04 7 * * * root /opt/pi_scripts/ddns/i_test &>/dev/null
-26 13 * * * root /opt/pi_scripts/ddns/i_test &>/dev/null
-06 19 * * * root /opt/pi_scripts/ddns/i_test &>/dev/null
+18 1 * * * root /opt/ddns/i_test &>/dev/null
+04 7 * * * root /opt/ddns/i_test &>/dev/null
+26 13 * * * root /opt/ddns/i_test &>/dev/null
+06 19 * * * root /opt/ddns/i_test &>/dev/null
