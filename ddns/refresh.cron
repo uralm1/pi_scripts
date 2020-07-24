@@ -1,0 +1,2 @@
+02 12 * * * root rm -f /tmp/ip6tmp_duck
+33 21 * * * root rm -f /tmp/ip6tmp_duck
