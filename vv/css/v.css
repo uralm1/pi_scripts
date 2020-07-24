@@ -1,0 +1,21 @@
+.camlink {
+  margin-left:8px;
+}
+.daylink {
+  margin-right:8px;
+}
+.shp {
+  border:none;
+  width:640px;
+  height:360px;
+}
+.evp {
+  border:none;
+  width:320px;
+  height:180px;
+}
+.ev {
+  font-size:13px;
+  margin-bottom:2px;
+  display:block;
+}

@@ -1,0 +1,20 @@
+# camera_id = 1
+width 640
+height 360
+framerate 5
+netcam_url rtsp://192.168.1.21:554/live2.sdp
+netcam_userpass user:pass
+netcam_keepalive off
+rtsp_uses_tcp on
+
+text_left C1-DLINK
+text_double off
+picture_filename c1_ev
+;picture_filename %v-%Y%m%d%H%M%S-%q
+output_pictures off
+event_gap 60
+on_picture_save /etc/motion/evr.pl %f
+snapshot_filename c1_shot
+snapshot_interval 120
+mask_file /etc/motion/640x360_black.pgm
+stream_port 8081
