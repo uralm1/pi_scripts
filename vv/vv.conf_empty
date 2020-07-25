@@ -1,0 +1,26 @@
+{
+  event_dir => '/tmp/motion',
+
+  program_url => 'https://test.example.com',
+  program_dir_url => '/vv',
+
+  cams => [ 
+    { name => 'Камера DAHUA',
+      streampage => '/st/0',
+      width => 1280,
+      height => 720,
+      src => '/vstream2/',
+      eventcam => 1,
+      snapshotfile => 'c2_shot.jpg',
+    },
+    { name => 'Камера DLink',
+      streampage => '/st/1',
+      width => 640,
+      height => 360,
+      src => '/vstream1/',
+      eventcam => 0,
+      snapshotfile => 'c1_shot.jpg',
+    },
+  ],
+};
+

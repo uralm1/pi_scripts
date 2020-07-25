@@ -8,25 +8,21 @@ app->mode('production');
 app->log->level('info');
 app->secrets(['efhthcdjfibvigfjdj']);
 
-helper evdir => sub { return '/tmp/motion' };
-helper pdir => sub { return '/vv' };
-helper dirurl => sub { return 'https://test.example.com/mv' };
+plugin 'Config' => { file => 'vv.conf' };
+delete app->defaults->{config}; # safety - not to pass passwords to stashes
+
+helper evdir => sub { return shift->config->{event_dir} };
+helper pdir => sub { return shift->config->{program_dir_url} };
+helper dirurl => sub { return shift->config->{program_url}.'/mv' };
 helper max_events_day => sub { return 100 };
 helper cams => sub {
-  return [ 
-    { name => 'Камера DAHUA',
-      streampage => '/st/0',
-      streamhtml => '<iframe width="1280" height="720" src="https://test.example.com/vstream2/" frameborder="0" allowfullscreen></iframe>',
-      eventcam => 1,
-      snapshotfile => 'c2_shot.jpg',
-    },
-    { name => 'Камера DLink',
-      streampage => '/st/1',
-      streamhtml => '<iframe width="640" height="360" src="https://test.example.com/vstream1/" frameborder="0" allowfullscreen></iframe>',
-      eventcam => 0,
-      snapshotfile => 'c1_shot.jpg',
-    },
-  ];
+  my $c = shift->config->{cams};
+  my $u = shift->config->{program_url};
+  for (@$c) { 
+    # create streamhtml-s
+    $_->{streamhtml} = "<iframe width=\"$_->{width}\" height=\"$_->{height}\" src=\"$u$_->{src}\" frameborder=\"0\" allowfullscreen></iframe>";
+  }
+  return $c;
 };
 
 helper npreview => sub { shift;
