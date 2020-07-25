@@ -16,13 +16,13 @@ helper pdir => sub { return shift->config->{program_dir_url} };
 helper dirurl => sub { return shift->config->{program_url}.'/mv' };
 helper max_events_day => sub { return 100 };
 helper cams => sub {
-  my $c = shift->config->{cams};
-  my $u = shift->config->{program_url};
-  for (@$c) { 
+  my $c = shift->config;
+  my $cr = $c->{cams};
+  for (@$cr) { 
     # create streamhtml-s
-    $_->{streamhtml} = "<iframe width=\"$_->{width}\" height=\"$_->{height}\" src=\"$u$_->{src}\" frameborder=\"0\" allowfullscreen></iframe>";
+    $_->{streamhtml} = "<iframe width=\"$_->{width}\" height=\"$_->{height}\" src=\"$c->{program_url}$_->{src}\" frameborder=\"0\" allowfullscreen></iframe>";
   }
-  return $c;
+  return $cr;
 };
 
 helper npreview => sub { shift;
