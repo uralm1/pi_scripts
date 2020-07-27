@@ -1,0 +1,6 @@
+# rs485 serial dongles
+# udevadm info -a -p $(udevadm info -q path -n /dev/ttyUSB0)
+#SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", ATTRS{busnum}=="1", ATTRS{devpath}=="1.2", SYMLINK+="ttyUSB_first"
+#SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", ATTRS{busnum}=="1", ATTRS{devpath}=="1.4", SYMLINK+="ttyUSB_second"
+KERNEL=="ttyUSB*", KERNELS=="1-1.2:1.0", SYMLINK+="rsA"
+KERNEL=="ttyUSB*", KERNELS=="1-1.4:1.0", SYMLINK+="rsB"

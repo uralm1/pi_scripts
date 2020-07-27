@@ -1,0 +1,9 @@
+Thing ntp:ntp:localtime [hostname="ru.pool.ntp.org", refreshInterval=60, refreshNtp=60]
+
+Thing astro:sun:home_sun [geolocation="54.4998,56.0223", interval=600]
+
+Thing systeminfo:computer:rpi [interval_high=5, interval_medium=60]
+
+Thing network:pingdevice:192_168_1_21 "c1_dlink_cam" [hostname="192.168.1.21", refreshInterval=600000, retry=3, timeout=3000]
+Thing network:pingdevice:192_168_1_22 "c2_dahua_cam" [hostname="192.168.1.22", refreshInterval=600000, retry=3, timeout=3000]
+Thing network:pingdevice:192_168_8_1 "huawei_modem" [hostname="192.168.8.1", refreshInterval=600000, retry=3, timeout=3000]

@@ -1,0 +1,10 @@
+Number c2_v "Напряжение сети [%d В]" <energy> {modbus="slave1:0"}
+Number c2_i "Ток [%.1f А]" <energy> {modbus="<[slave1:1:transformation=JS(div100.js)]"}
+Number c2_p "Мощность [%d Вт]" <energy> {modbus="slave1:2"}
+Number c2_temp "Температура в шкафу [%d °C]" <temperature> {modbus="slave2:0"}
+Number c2_ecode "Конт2:Код ошибки [%d]" <error> (gdebug) {modbus="slave3:0"}
+Number c2_ecnt "Конт2:Счетчик ошибок [%d]" <error> (gdebug) {modbus="slave3:1"}
+Switch c2_relay_heat "Реле нагревателя" <smoke> {modbus="slave4:0"}
+Number c2_t_on "Мин.темп. регулятора [%d °C]" <temperature_cold> {modbus="slave5:0"}
+Number c2_t_off "Макс.темп.регулятора [%d °C]" <temperature_hot> {modbus="slave5:1"}
+Switch c2_treg_on_relay "Вкл.терморегулятора" <heating> {modbus="slave5:2"}
