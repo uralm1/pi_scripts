@@ -16,7 +16,9 @@ install-ddns :
 	@echo "Installing ddns..."
 	install -m 0755 -d $(DDNS_DESTDIR)
 	install -m 0755 ddns/u_v6 ddns/i_test $(DDNS_DESTDIR)
-	install -m 0644 ddns/*.cron /etc/cron.d
+	install -m 0644 ddns/ddns.cron /etc/cron.d/ddns
+	install -m 0644 ddns/refresh.cron /etc/cron.d/ddns_refresh
+	install -m 0644 ddns/i_test.cron /etc/cron.d/i_test
 	@F="ddns.conf"; if [ -f ddns/$$F ]; then install -m 0644 ddns/$$F $(DDNS_DESTDIR); else echo "WARN: No $$F file found! Empty configuration file is installed."; install -m 0644 ddns/$${F}_empty $(DDNS_DESTDIR)/$$F; fi
 
 install-motion :
