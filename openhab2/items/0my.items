@@ -20,3 +20,6 @@ Number memory_available "Available memory" (gsysinfo) {channel="systeminfo:compu
 Number memory_used "Used memory" (gsysinfo) {channel="systeminfo:computer:rpi:memory#used"}
 Number memory_total "Total memory" (gsysinfo) {channel="systeminfo:computer:rpi:memory#total"}
 //Number memory_used_percent "Used memory %" (gsysinfo) {channel="systeminfo:computer:rpi:memory#usedPercent"}
+
+Switch reboot "Перезагрузка" {channel="exec:command:reboot:run"}
+Switch reboot_check "Перезагрузка с проверкой" {channel="exec:command:reboot_check:run"}

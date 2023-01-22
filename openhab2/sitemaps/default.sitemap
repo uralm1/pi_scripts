@@ -62,6 +62,10 @@ sitemap default label="Автоматика" {
         Text item=c3_ecode
         Text item=c3_ecnt
       }
+      Frame label="Аварийные команды" {
+        Switch item=reboot
+        Switch item=reboot_check
+      }
     }
   }
 }
