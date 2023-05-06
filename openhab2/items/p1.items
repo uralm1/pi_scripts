@@ -1,0 +1,9 @@
+Number p1_v "Напряжение сети [%.1f В]" <energy> {modbus="<[slave1:0:transformation=JS(div10.js)]"}
+//Number p1_i "Ток [%d]" <energy> {modbus="slave2:0"}
+//Number p1_p "Мощность [%d]" <energy> {modbus="slave2:1"}
+//Number p1_e "Энергия [%d]" <energy> {modbus="slave2:2"}
+//Number p1_f "Частота сети [%d]" <energy> {modbus="slave3:0"}
+Number p1_i "Ток [%.2f А]" <energy> {modbus="<[slave2:0:transformation=JS(div1000.js)]"}
+Number p1_p "Мощность [%d Вт]" <energy> {modbus="<[slave2:1:transformation=JS(div10.js)]"}
+Number p1_e "Энергия [%.1f кВтЧ]" <energy> {modbus="<[slave2:2:transformation=JS(div1000.js)]"}
+Number p1_f "Частота сети [%.1f Гц]" <energy> {modbus="<[slave3:0:transformation=JS(div10.js)]"}

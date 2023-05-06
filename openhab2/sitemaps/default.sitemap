@@ -32,9 +32,11 @@ sitemap default label="Автоматика" {
     Text item=c3_temp_tp
   }
   Frame label="Щиток" {
-    Text item=c2_v
-    Text item=c2_i
-    Text item=c2_p
+    Text item=p1_v
+    Text item=p1_i
+    Text item=p1_p
+    Text item=p1_e
+    //Text item=p1_f
   }
   Frame label="Подогрев" {
     Text item=c2_temp
@@ -47,6 +49,7 @@ sitemap default label="Автоматика" {
     Text label="Отладка" icon="zoom" {
       Frame {
         Group item=gsysinfo
+        Text item=p1_f
       }
       Frame label="Сеть" {
         Text item=c1_dlink_online
@@ -63,6 +66,7 @@ sitemap default label="Автоматика" {
         Text item=c3_ecnt
       }
       Frame label="Аварийные команды" {
+        Switch item=c2_relay_12
         Switch item=reboot
         Switch item=reboot_check
       }
