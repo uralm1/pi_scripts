@@ -46,7 +46,7 @@ install-openhab2 :
 	for F in rconf rlog; do install -m 0755 openhab2/services/$$F $(OH_CONFDIR)/services; done
 	install -m 0644 openhab2/sitemaps/default.sitemap $(OH_CONFDIR)/sitemaps
 	install -m 0644 openhab2/things/*.things $(OH_CONFDIR)/things
-	for F in div100.js sw_ping.map; do install -m 0644 openhab2/transform/$$F $(OH_CONFDIR)/transform; done
+	for F in div*.js sw_ping.map; do install -m 0644 openhab2/transform/$$F $(OH_CONFDIR)/transform; done
 	install -m 0755 -d $(OH_CONFDIR)/misc
 	install -m 0644 openhab2/misc/exec.whitelist $(OH_CONFDIR)/misc
 	install -m 0644 openhab2/misc/*.sh $(OH_CONFDIR)/misc
