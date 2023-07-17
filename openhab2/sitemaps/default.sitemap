@@ -14,7 +14,7 @@ sitemap default label="Автоматика" {
       }
     }
     Text label="Видеонаблюдение" icon="camera" {
-      Webview url="https://xasrv.duckdns.org/vv" height=50
+      Webview url="https://example.duckdns.org/vv" height=50
     }
     //Text item=vid_link
   }
@@ -27,14 +27,12 @@ sitemap default label="Автоматика" {
     Selection item=c3_treg_on_relay1 mappings=[OFF="Отключен", ON="Включен"]
     Selection item=c3_treg_preset mappings=[0="Не установлено", 1="Поддержка 5°С", 2="Работа 20°С", 3="Жарко 25°С"]
   }
-  Frame label="Душевая" {
-    Text item=c4_relay1
-    Text item=c4_relay2
-    //Text item=c4_relay3
-  }
-  Frame label="Парная" {
+  Frame label="Моечная, Парная" {
     Text item=c3_temp_out
     Text item=c3_temp_tp
+    Switch item=c4_relay1
+    Switch item=c4_relay2
+    //Switch item=c4_relay3
   }
   Frame label="Щиток" {
     Text item=p1_v
@@ -42,7 +40,6 @@ sitemap default label="Автоматика" {
     Text item=p1_p
     Text item=p1_e
     //Text item=p1_f
-    Text item=c4_leds
   }
   Frame label="Подогрев" {
     Text item=c2_temp
@@ -56,6 +53,7 @@ sitemap default label="Автоматика" {
       Frame {
         Group item=gsysinfo
         Text item=p1_f
+        Text item=c4_leds
       }
       Frame label="Сеть" {
         Text item=c1_dlink_online

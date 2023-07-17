@@ -1,5 +1,5 @@
 Switch c4_relay1 "Розетка бойлер" <poweroutlet> {modbus="slave12:0"}
-Switch c4_relay2 "Тепл.пол" <poweroutlet> {modbus="slave12:1"}
+Switch c4_relay2 "Теплый пол" <poweroutlet> {modbus="slave12:1"}
 //Switch c4_relay3 "Реле3" <poweroutlet> {modbus="slave12:2"}
 Number c4_ecode "Конт4:Код ошибки [%d]" <error> (gdebug) {modbus="slave13:0"}
 Number c4_ecnt "Конт4:Счетчик ошибок [%d]" <error> (gdebug) {modbus="slave13:1"}
