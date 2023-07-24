@@ -1,0 +1,93 @@
+var boolean boiler_heated_flag
+var boolean room_heated60_flag
+var boolean room_heated75_flag
+//var integer high_power_timestamp
+
+rule "System rebooted telegram"
+when
+  System started
+then
+  boiler_heated_flag = false
+  room_heated60_flag = false
+  room_heated75_flag = false
+  //high_power_timestamp = 0
+  sendTelegram("bot1", "Перезагрузка системы")
+end
+
+rule "Box treg telegram"
+when
+  Item c2_treg_on_relay changed
+then
+  val s = if (c2_treg_on_relay.state == ON) "активирован" else "отключен"
+  sendTelegram("bot1", "Терморегулятор подогрева шкафа " + s)
+end
+
+rule "Convector telegram"
+when
+  Item c3_relay1 changed
+then
+  if (c3_treg_on_relay1.state == ON) { return; }
+  val s = if (c3_relay1.state == ON) "включена" else "выключена"
+  sendTelegram("bot1", "Батарея " + s)
+end
+
+rule "Convector treg telegram"
+when
+  Item c3_treg_on_relay1 changed
+then
+  val s = if (c3_treg_on_relay1.state == ON) "активирован" else "отключен"
+  sendTelegram("bot1", "Терморегулятор батареи " + s)
+end
+
+rule "Boiler telegram"
+when
+  Item c4_relay1 changed
+then
+  var String s
+  if (c4_relay1.state == ON) s = "включен"
+  else {
+    s = "выключен"
+    boiler_heated_flag = false
+  }
+  sendTelegram("bot1", "Бойлер " + s)
+end
+
+rule "Tepl.pol telegram"
+when
+  Item c4_relay2 changed
+then
+  val s = if (c4_relay2.state == ON) "включен" else "выключен"
+  sendTelegram("bot1", "Теплый пол " + s)
+end
+
+rule "Boiler heated telegram"
+when
+  Item p1_p changed
+then
+  if (c4_relay1.state == ON) {
+    if (p1_p.state < 1000 && !boiler_heated_flag) {
+      sendTelegram("bot1", "Бойлер нагрелся!")
+      boiler_heated_flag = true
+    }
+  }
+end
+
+rule "Room heated telegram"
+when
+  Item c3_temp_out changed
+then
+  val t = c3_temp_out.state
+  if (t < 38) {
+    if (room_heated60_flag) room_heated60_flag = false
+    if (room_heated75_flag) room_heated75_flag = false
+  }
+  if (!room_heated60_flag && t >= 60) {
+    sendTelegram("bot1", "В парной 60 градусов!")
+    room_heated60_flag = true
+  }
+  if (!room_heated75_flag && t >= 75) {
+    sendTelegram("bot1", "В парной 75 градусов!!")
+    room_heated75_flag = true
+  }
+end
+
