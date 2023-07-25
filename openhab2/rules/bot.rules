@@ -22,7 +22,7 @@ rule "Box treg telegram"
 when
   Item c2_treg_on_relay changed
 then
-  sendTelegram("bot1", "Терморегулятор подогрева шкафа " + (c2_treg_on_relay.state == ON) ? "активирован" : "отключен")
+  sendTelegram("bot1", "Терморегулятор подогрева шкафа " + if (c2_treg_on_relay.state == ON) "активирован" else "отключен")
 end
 
 rule "Convector telegram"
@@ -30,14 +30,14 @@ when
   Item c3_relay1 changed
 then
   if (c3_treg_on_relay1.state == ON) { return; }
-  sendTelegram("bot1", "Батарея " + (c3_relay1.state == ON) ? "включена" : "выключена")
+  sendTelegram("bot1", "Батарея " + if (c3_relay1.state == ON) "включена" else "выключена")
 end
 
 rule "Convector treg telegram"
 when
   Item c3_treg_on_relay1 changed
 then
-  sendTelegram("bot1", "Терморегулятор батареи " + (c3_treg_on_relay1.state == ON) ? "активирован" : "отключен")
+  sendTelegram("bot1", "Терморегулятор батареи " + if (c3_treg_on_relay1.state == ON) "активирован" else "отключен")
 end
 
 rule "Boiler telegram"
@@ -58,7 +58,7 @@ rule "Tepl.pol telegram"
 when
   Item c4_relay2 changed
 then
-  sendTelegram("bot1", "Теплый пол " + (c4_relay2.state == ON) ? "включен" : "выключен")
+  sendTelegram("bot1", "Теплый пол " + if (c4_relay2.state == ON) "включен" else "выключен")
 end
 
 rule "Boiler heated and high powered telegram"
