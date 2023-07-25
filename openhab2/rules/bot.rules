@@ -18,8 +18,7 @@ rule "Box treg telegram"
 when
   Item c2_treg_on_relay changed
 then
-  val s = if (c2_treg_on_relay.state == ON) "активирован" else "отключен"
-  sendTelegram("bot1", "Терморегулятор подогрева шкафа " + s)
+  sendTelegram("bot1", "Терморегулятор подогрева шкафа " + (c2_treg_on_relay.state == ON) ? "активирован" : "отключен")
 end
 
 rule "Convector telegram"
@@ -27,16 +26,14 @@ when
   Item c3_relay1 changed
 then
   if (c3_treg_on_relay1.state == ON) { return; }
-  val s = if (c3_relay1.state == ON) "включена" else "выключена"
-  sendTelegram("bot1", "Батарея " + s)
+  sendTelegram("bot1", "Батарея " + (c3_relay1.state == ON) ? "включена" : "выключена")
 end
 
 rule "Convector treg telegram"
 when
   Item c3_treg_on_relay1 changed
 then
-  val s = if (c3_treg_on_relay1.state == ON) "активирован" else "отключен"
-  sendTelegram("bot1", "Терморегулятор батареи " + s)
+  sendTelegram("bot1", "Терморегулятор батареи " + (c3_treg_on_relay1.state == ON) ? "активирован" : "отключен")
 end
 
 rule "Boiler telegram"
@@ -56,8 +53,7 @@ rule "Tepl.pol telegram"
 when
   Item c4_relay2 changed
 then
-  val s = if (c4_relay2.state == ON) "включен" else "выключен"
-  sendTelegram("bot1", "Теплый пол " + s)
+  sendTelegram("bot1", "Теплый пол " + (c4_relay2.state == ON) ? "включен" : "выключен")
 end
 
 rule "Boiler heated telegram"
@@ -90,4 +86,3 @@ then
     room_heated75_flag = true
   }
 end
-
