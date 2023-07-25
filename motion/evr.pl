@@ -30,7 +30,8 @@ if ($f eq "$ev_dir/$snapshot1") {
   #say "event processing";
   my $fp = make_preview($f, '320x180');
   cleanup_dir();
-  send_telegram($fp);
+  my ($min, $hour) = (localtime)[1,2];
+  send_telegram($fp) if $hour >= 9 && $hour < 22;
 }
 
 exit 0;
@@ -90,11 +91,18 @@ sub cleanup_dir {
 sub send_telegram {
   my $file = shift or die "Required filename missing";
   my $api = WWW::Telegram::BotAPI->new(token => $telegram_token);
-  if (-r $file) {
-    my $size = -s $file;
-    eval { $api->sendPhoto({ chat_id => $chat_id, photo => { file => $file }, caption => "Вижу ($size)" }) };
+  if (-r $file && $file =~ m#^(\d{2,})-(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})-(\d{2,})_preview\.jpg$#) {
+    #say "$1 - $2 $3 $4 $5 $6 $7 - $8";
+    #ev => $1,
+    #year => $2,
+    #month => $3,
+    #day => $4,
+    #hour => $5,
+    #min => $6,
+    #sec => $7 
+    eval { $api->sendPhoto({ chat_id => $chat_id, photo => { file => $file }, caption => "$5:$6:$7 $4.$3.$2 - $1" }) };
   } else {
-    eval { $api->sendMessage({ chat_id => $chat_id, text => "Не нашел $file." }) };
+    eval { $api->sendMessage({ chat_id => $chat_id, text => "Не обработал $file." }) };
   }
   undef $api;
 }
