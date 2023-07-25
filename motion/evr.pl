@@ -1,17 +1,22 @@
 #!/usr/bin/perl
-
 # usage: evr.pl /tmp/motion/rrr.jpg
+
+#BEGIN { $ENV{'TELEGRAM_BOTAPI_DEBUG'} = 1; }
+
 use v5.12;
 use strict;
 use warnings;
 
 use Image::Magick;
+use WWW::Telegram::BotAPI;
 #use Data::Dumper;
 
 my $ev_dir = '/tmp/motion';
 my $snapshot1 = 'c1_shot.jpg';
 my $snapshot2 = 'c2_shot.jpg';
 my $keep_num = 120;
+my $telegram_token = 'INSERT MY TOKEN HERE';
+my $chat_id = 'INSERT MY CHAT_ID HERE';
 
 my $f = shift or exit 0;
 
@@ -23,8 +28,9 @@ if ($f eq "$ev_dir/$snapshot1") {
   make_preview($f, '640x360');
 } elsif ($f =~ m#^$ev_dir/\d{2,}-\d{14}-\d{2,}\.jpg$#) {
   #say "event processing";
-  make_preview($f, '320x180');
+  my $fp = make_preview($f, '320x180');
   cleanup_dir();
+  send_telegram($fp);
 }
 
 exit 0;
@@ -41,6 +47,7 @@ sub make_preview {
   $file =~ s/^(.+)\.jpg$/$1_preview.jpg/;
   $image->Write($file);
   undef $image;
+  return $file;
 }
 
 # cleanup_dir();
@@ -77,4 +84,17 @@ sub cleanup_dir {
     $c++;
   }
   return 0;
+}
+
+# send_telegram('/tmp/motion/rrr_preview.jpg');
+sub send_telegram {
+  my $file = shift or die "Required filename missing";
+  my $api = WWW::Telegram::BotAPI->new(token => $telegram_token);
+  if (-r $file) {
+    my $size = -s $file;
+    eval { $api->sendPhoto({ chat_id => $chat_id, photo => { file => $file }, caption => "Вижу ($size)" }) };
+  } else {
+    eval { $api->sendMessage({ chat_id => $chat_id, text => "Не нашел $file." }) };
+  }
+  undef $api;
 }
