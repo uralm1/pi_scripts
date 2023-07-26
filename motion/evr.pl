@@ -6,9 +6,11 @@
 use v5.12;
 use strict;
 use warnings;
+use utf8;
 
 use Image::Magick;
 use WWW::Telegram::BotAPI;
+use File::Basename;
 #use Data::Dumper;
 
 my $ev_dir = '/tmp/motion';
@@ -90,19 +92,15 @@ sub cleanup_dir {
 # send_telegram('/tmp/motion/rrr_preview.jpg');
 sub send_telegram {
   my $file = shift or die "Required filename missing";
+  my $file_name = basename $file;
   my $api = WWW::Telegram::BotAPI->new(token => $telegram_token);
-  if (-r $file && $file =~ m#^(\d{2,})-(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})-(\d{2,})_preview\.jpg$#) {
+  if (-r $file && $file_name =~ m#^(\d{2,})-(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})-(\d{2,})_preview\.jpg$#) {
     #say "$1 - $2 $3 $4 $5 $6 $7 - $8";
-    #ev => $1,
-    #year => $2,
-    #month => $3,
-    #day => $4,
-    #hour => $5,
-    #min => $6,
-    #sec => $7 
-    eval { $api->sendPhoto({ chat_id => $chat_id, photo => { file => $file }, caption => "$5:$6:$7 $4.$3.$2 - $1" }) };
+    my $r = eval { $api->sendPhoto({ chat_id => $chat_id, photo => { file => $file }, caption => "$5:$6:$7 $4.$3.$2" }) };
+    say 'sendPhoto error: '.$api->parse_error->{msg} unless $r;
   } else {
-    eval { $api->sendMessage({ chat_id => $chat_id, text => "Не обработал $file." }) };
+    my $r = eval { $api->sendMessage({ chat_id => $chat_id, text => "Не обработал $file_name." }) };
+    say 'sendMessage error: '.$api->parse_error->{msg} unless $r;
   }
   undef $api;
 }
