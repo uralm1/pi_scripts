@@ -17,6 +17,7 @@ my $ev_dir = '/tmp/motion';
 my $snapshot1 = 'c1_shot.jpg';
 my $snapshot2 = 'c2_shot.jpg';
 my $keep_num = 120;
+my $timestamp_file = "$ev_dir/telegram.timestamp";
 my $telegram_token = 'INSERT MY TOKEN HERE';
 my $chat_id = 'INSERT MY CHAT_ID HERE';
 
@@ -92,6 +93,16 @@ sub cleanup_dir {
 # send_telegram('/tmp/motion/rrr_preview.jpg');
 sub send_telegram {
   my $file = shift or die "Required filename missing";
+  my $old_timestamp;
+  if (open(my $fh, '<', $timestamp_file)) {
+    local $/;
+    $old_timestamp = <$fh>;
+    close $fh;
+  }
+  $old_timestamp //= 0;
+  my $t = time;
+  if ($t - $old_timestamp < 1800) { return 0; }
+  
   my $file_name = basename $file;
   my $api = WWW::Telegram::BotAPI->new(token => $telegram_token);
   if (-r $file && $file_name =~ m#^(\d{2,})-(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})-(\d{2,})_preview\.jpg$#) {
@@ -103,4 +114,11 @@ sub send_telegram {
     say 'sendMessage error: '.$api->parse_error->{msg} unless $r;
   }
   undef $api;
+
+  if (open(my $fh, '>', $timestamp_file)) {
+    print $fh $t;
+    close $fh;
+  } else {
+    say "Error updating timestamp file: $!";
+  }
 }
