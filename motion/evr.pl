@@ -101,7 +101,7 @@ sub send_telegram {
   }
   $old_timestamp //= 0;
   my $t = time;
-  return if $t - $old_timestamp < 1800;
+  return if $t - $old_timestamp < 3600;
   
   my $file_name = basename $file;
   my $api = WWW::Telegram::BotAPI->new(token => $telegram_token);
