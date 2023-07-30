@@ -2,19 +2,21 @@ import java.time.Instant
 import java.time.Duration
 
 val BOILER_DET_POWER = 1000
-var boolean boiler_heated_flag
+var boolean silence_boiler_heated_flag
 var boolean room_heated60_flag
 var boolean room_heated75_flag
 var Instant very_high_power_timestamp
+var Instant silence_high_power_timestamp
 
 rule "System rebooted telegram"
 when
   System started
 then
-  boiler_heated_flag = true
+  silence_boiler_heated_flag = true
   room_heated60_flag = false
   room_heated75_flag = false
   very_high_power_timestamp = Instant.EPOCH
+  silence_high_power_timestamp = Instant.EPOCH
   sendTelegram("bot1", "Перезагрузка системы")
 end
 
@@ -49,7 +51,8 @@ then
     s = "включен"
   } else {
     s = "выключен"
-    boiler_heated_flag = true
+    silence_boiler_heated_flag = true
+    silence_high_power_timestamp = Instant.now()
   }
   sendTelegram("bot1", "Бойлер " + s)
 end
@@ -68,17 +71,18 @@ then
   val p = p1_p.state
   if (c4_relay1.state == ON) {
     if (p >= BOILER_DET_POWER) {
-      boiler_heated_flag = false
+      silence_boiler_heated_flag = false
     } else {
-      if (!boiler_heated_flag) {
+      if (!silence_boiler_heated_flag) {
         sendTelegram("bot1", "Бойлер нагрелся!")
-        boiler_heated_flag = true
+        silence_boiler_heated_flag = true
       }
     }
   }
   val Instant cur_t = Instant.now()
   if (p >= 450 && c3_relay1.state != ON && c4_relay1.state != ON && c4_relay2.state != ON
-      && Duration.between(very_high_power_timestamp, cur_t).toMinutes() >= 60) {
+      && Duration.between(very_high_power_timestamp, cur_t).toMinutes() >= 60
+      && Duration.between(silence_high_power_timestamp, cur_t).getSeconds() >= 5) {
     sendTelegram("bot1", "Что-то включено (" + p + "Вт)")
     very_high_power_timestamp = cur_t
   }
