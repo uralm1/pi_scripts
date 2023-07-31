@@ -32,7 +32,14 @@ when
   Item c3_relay1 changed
 then
   if (c3_treg_on_relay1.state == ON) { return; }
-  sendTelegram("bot1", "Батарея " + if (c3_relay1.state == ON) "включена" else "выключена")
+  var String s
+  if (c3_relay1.state == ON) {
+    s = "включена"
+  } else {
+    s = "выключена"
+    silence_high_power_timestamp = Instant.now()
+  }
+  sendTelegram("bot1", "Батарея " + s)
 end
 
 rule "Convector treg telegram"
@@ -61,7 +68,14 @@ rule "Tepl.pol telegram"
 when
   Item c4_relay2 changed
 then
-  sendTelegram("bot1", "Теплый пол " + if (c4_relay2.state == ON) "включен" else "выключен")
+  var String s
+  if (c4_relay2.state == ON) {
+    s = "включен"
+  } else {
+    s = "выключен"
+    silence_high_power_timestamp = Instant.now()
+  }
+  sendTelegram("bot1", "Теплый пол " + s)
 end
 
 rule "Boiler heated and high powered telegram"
