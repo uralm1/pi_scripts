@@ -3,6 +3,7 @@ import java.time.Duration
 
 val BOILER_DET_POWER = 1000
 var boolean silence_boiler_heated_flag = true
+var boolean silence_reboot_flag = true
 var boolean room_heated60_flag = false
 var boolean room_heated75_flag = false
 var Instant very_high_power_timestamp = Instant.MIN
@@ -13,6 +14,7 @@ when
   System started
 then
   silence_boiler_heated_flag = true
+  silence_reboot_flag = false
   room_heated60_flag = false
   room_heated75_flag = false
   very_high_power_timestamp = Instant.MIN
@@ -24,6 +26,7 @@ rule "Box treg telegram"
 when
   Item c2_treg_on_relay changed
 then
+  if (silence_reboot_flag) { return; }
   sendTelegram("bot1", "Терморегулятор подогрева шкафа " + if (c2_treg_on_relay.state == ON) "активирован" else "отключен")
 end
 
@@ -31,6 +34,7 @@ rule "Convector telegram"
 when
   Item c3_relay1 changed
 then
+  if (silence_reboot_flag) { return; }
   if (c3_treg_on_relay1.state == ON) { return; }
   var String s
   if (c3_relay1.state == ON) {
@@ -46,6 +50,7 @@ rule "Convector treg telegram"
 when
   Item c3_treg_on_relay1 changed
 then
+  if (silence_reboot_flag) { return; }
   sendTelegram("bot1", "Терморегулятор батареи " + if (c3_treg_on_relay1.state == ON) "активирован" else "отключен")
 end
 
@@ -53,6 +58,7 @@ rule "Boiler telegram"
 when
   Item c4_relay1 changed
 then
+  if (silence_reboot_flag) { return; }
   var String s
   if (c4_relay1.state == ON) {
     s = "включен"
@@ -68,6 +74,7 @@ rule "Tepl.pol telegram"
 when
   Item c4_relay2 changed
 then
+  if (silence_reboot_flag) { return; }
   var String s
   if (c4_relay2.state == ON) {
     s = "включен"
@@ -82,6 +89,7 @@ rule "Boiler heated and high powered telegram"
 when
   Item p1_p changed
 then
+  if (silence_reboot_flag) { return; }
   val p = p1_p.state
   if (c4_relay1.state == ON) {
     if (p >= BOILER_DET_POWER) {
@@ -106,6 +114,7 @@ rule "Room heated telegram"
 when
   Item c3_temp_out changed
 then
+  if (silence_reboot_flag) { return; }
   val t = c3_temp_out.state
   if (t < 38) {
     if (room_heated60_flag) room_heated60_flag = false
