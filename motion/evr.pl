@@ -18,8 +18,9 @@ my $snapshot1 = 'c1_shot.jpg';
 my $snapshot2 = 'c2_shot.jpg';
 my $keep_num = 120;
 my $timestamp_file = "$ev_dir/telegram.timestamp";
-my $telegram_token = 'INSERT MY TOKEN HERE';
-my $chat_id = 'INSERT MY CHAT_ID HERE';
+my $telegram_config = '/etc/openhab2/services/telegram.cfg';
+my $telegram_token;
+my $chat_id;
 
 my $f = shift or exit 0;
 
@@ -97,14 +98,32 @@ sub send_telegram {
   if (open(my $fh, '<', $timestamp_file)) {
     local $/;
     $old_timestamp = <$fh>;
-    close $fh;
+    close $fh or say 'Timestamp file close failure';
   }
   $old_timestamp //= 0;
   my $t = time;
   return if $t - $old_timestamp < 3600;
+
+  if (open(my $fh, '<', $telegram_config)) {
+    while (<$fh>) {
+      if (!defined $chat_id && m/^\S+\.chatId\s*=\s*["']?([A-Za-z0-9:-]+)["']?$/xi) {
+        $chat_id = $1;
+      } elsif (!defined $telegram_token && m/^\S+\.token\s*=\s*["']?([A-Za-z0-9:-]+)["']?$/xi) {
+        $telegram_token = $1;
+      }
+    }
+    close $fh or say 'Telegram configuration file close failure';
+    unless (defined $telegram_token && defined $chat_id) {
+      say "Telegram configuration file $telegram_config doesn't include correct token or chat_id";
+      return;
+    }
+  } else {
+    say "Telegram configuration file $telegram_config doesn't exist.";
+    return;
+  }
+  my $api = WWW::Telegram::BotAPI->new(token => $telegram_token);
   
   my $file_name = basename $file;
-  my $api = WWW::Telegram::BotAPI->new(token => $telegram_token);
   if (-r $file && $file_name =~ m#^(\d{2,})-(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})-(\d{2,})_preview\.jpg$#) {
     #say "$1 - $2 $3 $4 $5 $6 $7 - $8";
     my $r = eval { $api->sendPhoto({ chat_id => $chat_id, photo => { file => $file }, caption => "$5:$6:$7 $4.$3.$2" }) };
@@ -117,7 +136,7 @@ sub send_telegram {
 
   if (open(my $fh, '>', $timestamp_file)) {
     print $fh $t;
-    close $fh;
+    close $fh or say 'Timestamp file close failure';
   } else {
     say "Error updating timestamp file: $!";
   }
