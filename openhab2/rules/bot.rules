@@ -88,7 +88,8 @@ rule "Boiler heated and high powered telegram"
 when
   Item p1_p changed
 then
-  if (Duration.between(silence_reboot_timestamp, Instant.now()).getSeconds() < 8) { return; }
+  val Instant cur_t = Instant.now()
+  //if (Duration.between(silence_reboot_timestamp, cur_t).getSeconds() < 8) { return; }
   val p = p1_p.state
   if (c4_relay1.state == ON) {
     if (p >= BOILER_DET_POWER) {
@@ -100,7 +101,6 @@ then
       }
     }
   }
-  val Instant cur_t = Instant.now()
   if (p >= 450 && c3_relay1.state != ON && c4_relay1.state != ON && c4_relay2.state != ON
       && Duration.between(very_high_power_timestamp, cur_t).toMinutes() >= 60
       && Duration.between(silence_high_power_timestamp, cur_t).getSeconds() >= 5) {
