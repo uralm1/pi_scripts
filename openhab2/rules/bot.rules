@@ -2,11 +2,11 @@ import java.time.Instant
 import java.time.Duration
 
 val BOILER_DET_POWER = 1000
-var boolean silence_boiler_heated_flag
-var boolean room_heated60_flag
-var boolean room_heated75_flag
-var Instant very_high_power_timestamp
-var Instant silence_high_power_timestamp
+var boolean silence_boiler_heated_flag = true
+var boolean room_heated60_flag = false
+var boolean room_heated75_flag = false
+var Instant very_high_power_timestamp = Instant.MIN
+var Instant silence_high_power_timestamp = Instant.MIN
 
 rule "System rebooted telegram"
 when
@@ -15,8 +15,8 @@ then
   silence_boiler_heated_flag = true
   room_heated60_flag = false
   room_heated75_flag = false
-  very_high_power_timestamp = Instant.EPOCH
-  silence_high_power_timestamp = Instant.EPOCH
+  very_high_power_timestamp = Instant.MIN
+  silence_high_power_timestamp = Instant.MIN
   sendTelegram("bot1", "Перезагрузка системы")
 end
 
