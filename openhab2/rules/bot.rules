@@ -7,7 +7,7 @@ var boolean room_heated60_flag = false
 var boolean room_heated75_flag = false
 var Instant very_high_power_timestamp = Instant.MIN
 var Instant silence_high_power_timestamp = Instant.MIN
-var Instant silence_reboot_timestamp = Instant.now()
+var Instant silence_reboot_timestamp = Instant.MIN
 
 rule "System rebooted telegram"
 when
@@ -18,6 +18,7 @@ then
   room_heated75_flag = false
   very_high_power_timestamp = Instant.MIN
   silence_high_power_timestamp = Instant.MIN
+  silence_reboot_timestamp = Instant.now()
   sendTelegram("bot1", "Перезагрузка системы")
 end
 
@@ -25,7 +26,7 @@ rule "Box treg telegram"
 when
   Item c2_treg_on_relay changed
 then
-  if (Duration.between(silence_reboot_timestamp, Instant.now()).getSeconds() < 8) { return; }
+  //if (Duration.between(silence_reboot_timestamp, Instant.now()).getSeconds() < 8) { return; }
   sendTelegram("bot1", "Терморегулятор подогрева шкафа " + if (c2_treg_on_relay.state == ON) "активирован" else "отключен")
 end
 
@@ -33,7 +34,7 @@ rule "Convector telegram"
 when
   Item c3_relay1 changed
 then
-  if (Duration.between(silence_reboot_timestamp, Instant.now()).getSeconds() < 8) { return; }
+  //if (Duration.between(silence_reboot_timestamp, Instant.now()).getSeconds() < 8) { return; }
   if (c3_treg_on_relay1.state == ON) { return; }
   var String s
   if (c3_relay1.state == ON) {
@@ -49,7 +50,7 @@ rule "Convector treg telegram"
 when
   Item c3_treg_on_relay1 changed
 then
-  if (Duration.between(silence_reboot_timestamp, Instant.now()).getSeconds() < 8) { return; }
+  //if (Duration.between(silence_reboot_timestamp, Instant.now()).getSeconds() < 8) { return; }
   sendTelegram("bot1", "Терморегулятор батареи " + if (c3_treg_on_relay1.state == ON) "активирован" else "отключен")
 end
 
@@ -57,7 +58,7 @@ rule "Boiler telegram"
 when
   Item c4_relay1 changed
 then
-  if (Duration.between(silence_reboot_timestamp, Instant.now()).getSeconds() < 8) { return; }
+  //if (Duration.between(silence_reboot_timestamp, Instant.now()).getSeconds() < 8) { return; }
   var String s
   if (c4_relay1.state == ON) {
     s = "включен"
@@ -73,7 +74,7 @@ rule "Tepl.pol telegram"
 when
   Item c4_relay2 changed
 then
-  if (Duration.between(silence_reboot_timestamp, Instant.now()).getSeconds() < 8) { return; }
+  //if (Duration.between(silence_reboot_timestamp, Instant.now()).getSeconds() < 8) { return; }
   var String s
   if (c4_relay2.state == ON) {
     s = "включен"
@@ -113,7 +114,7 @@ rule "Room heated telegram"
 when
   Item c3_temp_out changed
 then
-  if (Duration.between(silence_reboot_timestamp, Instant.now()).getSeconds() < 8) { return; }
+  //if (Duration.between(silence_reboot_timestamp, Instant.now()).getSeconds() < 8) { return; }
   val t = c3_temp_out.state
   if (t < 38) {
     if (room_heated60_flag) room_heated60_flag = false
