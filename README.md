@@ -5,7 +5,7 @@
 ddns/ddns.conf - ddns hostname & service tokens,
 
 motion/cN-*camname*.conf - netcam urls and user/pass,
-motion/evr.pl - telegram token and chat_id,
+motion/evr.pl - uses telegram token and chat_id from openhab2/services/telegram.cfg,
 
 vv/vv.conf - program url etc.
 
