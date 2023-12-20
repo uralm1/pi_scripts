@@ -120,11 +120,11 @@ then
     if (room_heated60_flag) room_heated60_flag = false
     if (room_heated75_flag) room_heated75_flag = false
   }
-  if (!room_heated60_flag && t >= 60) {
+  if (!room_heated60_flag && t >= 60 && t != 85) {
     sendTelegram("bot1", "В парной " + t + " градусов!")
     room_heated60_flag = true
   }
-  if (!room_heated75_flag && t >= 75) {
+  if (!room_heated75_flag && t >= 75 && t != 85) {
     sendTelegram("bot1", "В парной " + t + " градусов!!!")
     room_heated75_flag = true
   }
