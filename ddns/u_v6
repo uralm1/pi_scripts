@@ -1,15 +1,8 @@
 #!/bin/bash
 
-# this doesn't work if symlinks are in path
-BINDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-#echo $BINDIR
+source ddns.conf || { echo "Error: config file is not found."; exit 1; }
 
-if test -f "$BINDIR/ddns.conf" ; then
-  . "$BINDIR/ddns.conf"
-else
-  echo "Error: config file is not found."
-  exit 1
-fi
+[[ -z "$ipv6" || -z "$ipv4" ]] && { echo 'Error: ipv6 or ipv4 is empty!'; exit 1; }
 
 # duckdns.org
 _dom=`echo $hostname_duck | cut -d'.' -f1`
@@ -24,10 +17,10 @@ uurl_afr="https://freedns.afraid.org/dynamic/update.php?$tokenAAAA_afr&address=$
 
 
 function restart_apache() {
-  #echo "Restarting apache"
-  if [ -e /usr/sbin/apache2 ]; then
-    if [ -f /run/apache2/apache2.pid ]; then
-      if [ -d /run/systemd/system ]; then
+  #echo 'Restarting apache'
+  if [[ -e /usr/sbin/apache2 ]]; then
+    if [[ -f /run/apache2/apache2.pid ]]; then
+      if [[ -d /run/systemd/system ]]; then
 	systemctl restart --no-block apache2.service >/dev/null 2>&1 || true
       else
 	/usr/sbin/invoke-rc.d apache2 restart >/dev/null 2>&1 || true
@@ -38,18 +31,18 @@ function restart_apache() {
 
 function update_freedns1() {
   local tmpfile=/tmp/ip6tmp_afr
-  #echo "Updating freedns.afraid.org"
-  if [ -r $tmpfile ]; then
-    #echo "tmpfile exists"
-    if [ "x$ipv6" != "x$(cat $tmpfile)" ]; then
-      #echo "not equal"
+  #echo 'Updating freedns.afraid.org'
+  if [[ -r $tmpfile ]]; then
+    #echo 'tmpfile exists'
+    if [[ "$ipv6" != "$(cat $tmpfile)" ]]; then
+      #echo 'not equal'
       curl -m 30 -k $uurl_afr
       echo $ipv6 > $tmpfile
     #else
-      #echo "equals"
+      #echo 'equals'
     fi
   else
-    #echo "tmpfile does not exist"
+    #echo 'tmpfile does not exist'
     curl -m 30 -k $uurl_afr
     echo $ipv6 > $tmpfile
   fi
@@ -57,9 +50,9 @@ function update_freedns1() {
 
 function update_noip2() {
   local tmpfile=/tmp/ip6tmp_noip
-  #echo "Updating no-ip.com"
-  if [ -r $tmpfile ]; then
-    if [ "x$ipv4" != "x$(cat $tmpfile)" ]; then
+  #echo 'Updating no-ip.com'
+  if [[ -r $tmpfile ]]; then
+    if [[ "$ipv4" != "$(cat $tmpfile)" ]]; then
       curl -m 30 -A $useragent_noip -k $uurl_noip
       echo $ipv4 > $tmpfile
     fi
@@ -71,12 +64,12 @@ function update_noip2() {
 
 function update_duckdns3() {
   local tmpfile=/tmp/ip6tmp_duck
-  #echo "Updating duckdns.org"
-  if [ -r $tmpfile ]; then
-    if [ "x$ipv6" != "x$(cat $tmpfile)" ]; then
+  #echo 'Updating duckdns.org'
+  if [[ -r $tmpfile ]]; then
+    if [[ "$ipv6" != "$(cat $tmpfile)" ]]; then
       RESP=$(curl -s -m 30 -k $uurl_duck)
-      if [ $? -eq 0 ]; then
-        if [ "$RESP" == "OK" ]; then
+      if [[ $? -eq 0 ]]; then
+        if [[ "$RESP" == 'OK' ]]; then
           echo $ipv6 > $tmpfile
           restart_apache
 	fi
@@ -84,14 +77,15 @@ function update_duckdns3() {
     fi
   else
     RESP=$(curl -s -m 30 -k $uurl_duck)
-    if [ $? -eq 0 ]; then
-      if [ "$RESP" == "OK" ]; then
+    if [[ $? -eq 0 ]]; then
+      if [[ "$RESP" == 'OK' ]]; then
 	echo $ipv6 > $tmpfile
 	restart_apache
       fi
     fi
   fi
 }
+
 
 ### MAIN PROGRAM ###
 #update_freedns1

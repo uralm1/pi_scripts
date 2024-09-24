@@ -1,6 +1,7 @@
 #!/bin/bash
 
-ip -6 a show dev eth1 scope global | awk 'match($0,/inet6 [a-f0-9\.:]*\/128/){print substr($0,RSTART+6,RLENGTH-10);exit 0;}'
+ipv6=$(ip -6 a show dev eth1 scope global | awk 'match($0,/inet6 [a-f0-9\.:]*\/128/){print substr($0,RSTART+6,RLENGTH-10);exit 0;}')
+echo "ipv6: $ipv6"
 
-tmpp=/run/user/$UID
-echo $tmpp
+#tmpp=/run/user/$UID
+#echo $tmpp

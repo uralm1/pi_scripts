@@ -21,38 +21,39 @@ function log {
 function check_inet {
   if ping -6 -c 1 $inet_ip1 &>/dev/null
   then
-    #echo "ping 1 success"
+    #echo 'ping 1 success'
     return 0;
   elif ping -6 -c 2 $inet_ip2 &>/dev/null
   then
-    #echo "ping 2 success"
+    #echo 'ping 2 success'
     return 0;
   elif ping -6 -c 3 $inet_ip3 &>/dev/null
   then
-    #echo "ping 3 success"
+    #echo 'ping 3 success'
     return 0;
   elif ping -6 -c 3 $inet_ip4 &>/dev/null
   then
-    #echo "ping 4 success"
+    #echo 'ping 4 success'
     return 0;
   else
-    #echo "all pings failed"
+    #echo 'all pings failed'
     return 1;
   fi
 }
 
 function mark_reboot {
   echo "$1" > $mark_file
-  if [ "$1" -eq 1 ]
-  then
-    log "restarting eth1 interface"
+  if [[ "$1" == 1 ]]; then
+    log 'restarting eth1 interface'
     sleep 1
-    /sbin/dhcpcd -q -k eth1
+    #FIXME
+    #/sbin/dhcpcd -q -k eth1
     sleep 10
-    /sbin/dhcpcd -q -n eth1
+    #FIXME
+    #/sbin/dhcpcd -q -n eth1
     sleep 5
   else
-    log "rebooting the system"
+    log 'rebooting the system'
     sleep 10
     /sbin/shutdown -r --no-wall now
   fi
@@ -60,29 +61,24 @@ function mark_reboot {
 
 ### program start
 sleep $[ ($RANDOM % 60) + 1 ]s
-if check_inet
-then
+if check_inet; then
   # success, remove marks
   rm -f $mark_file
 else
   # failure
-  if [ -r $mark_file ]
-  then
+  if [[ -r $mark_file ]]; then
     # mark file exists
     mark=$(cat $mark_file)
     #echo $mark
-    if [ "$mark" -eq 1 ]
-    then
+    if [[ "$mark" == 1 ]]; then
       # mark1 was set, set mark2 and reboot then
       mark_reboot 2
-    elif [ "$mark" -eq 2 ]
-    then
+    elif [[ "$mark" == 2 ]]; then
       # mark2 was set, set mark3 and reboot then
       mark_reboot 3
-    elif [ "$mark" -eq 3 ]
-    then
+    elif [[ "$mark" == 3 ]]; then
       # mark3 was set, just exit and relax
-      log "cant help, no reboots anymore, exited with 1"
+      log 'cant help, no reboots anymore, exited with 1'
       exit 1
     else
       # no marks, set mark1 and reset net
