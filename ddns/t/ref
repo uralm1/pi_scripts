@@ -1,8 +1,10 @@
 #!/bin/bash
 
-source ../ddns.conf || { echo "Error: config file is not found."; exit 1; }
+SCRIPT_DIR="$(dirname -- "${BASH_SOURCE[0]:-$0}")"
 
-[[ -z "$ipv6" || -z "$ipv4" ]] && { echo 'Error: ipv6 or ipv4 is empty!'; exit 1; }
+source "$SCRIPT_DIR/../ddns.conf" || { echo "Error: config file is not found."; exit 1; }
+
+[[ -z "$ipv6" || -z "$ipv4" ]] && { echo 'Error: ipv6 or ipv4 is empty!'; exit 2; }
 
 # duckdns.org
 _dom=`echo $hostname_duck | cut -d'.' -f1`

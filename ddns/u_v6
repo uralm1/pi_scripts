@@ -1,8 +1,12 @@
 #!/bin/bash
 
-source ddns.conf || { echo "Error: config file is not found."; exit 1; }
+SCRIPT_DIR="$(dirname -- "${BASH_SOURCE[0]:-$0}")"
 
-[[ -z "$ipv6" || -z "$ipv4" ]] && { echo 'Error: ipv6 or ipv4 is empty!'; exit 1; }
+[[ "$1" == force ]] && FORCE_UPDATE=1
+
+source "$SCRIPT_DIR/ddns.conf" || { echo "Error: config file is not found."; exit 1; }
+
+[[ -z "$ipv6" || -z "$ipv4" ]] && { echo 'Error: ipv6 or ipv4 is empty!'; exit 2; }
 
 # duckdns.org
 _dom=`echo $hostname_duck | cut -d'.' -f1`
@@ -32,7 +36,7 @@ function restart_apache() {
 function update_freedns1() {
   local tmpfile=/tmp/ip6tmp_afr
   #echo 'Updating freedns.afraid.org'
-  if [[ -r $tmpfile ]]; then
+  if [[ -z $FORCE_UPDATE && -r $tmpfile ]]; then
     #echo 'tmpfile exists'
     if [[ "$ipv6" != "$(cat $tmpfile)" ]]; then
       #echo 'not equal'
@@ -51,7 +55,7 @@ function update_freedns1() {
 function update_noip2() {
   local tmpfile=/tmp/ip6tmp_noip
   #echo 'Updating no-ip.com'
-  if [[ -r $tmpfile ]]; then
+  if [[ -z $FORCE_UPDATE && -r $tmpfile ]]; then
     if [[ "$ipv4" != "$(cat $tmpfile)" ]]; then
       curl -m 30 -A $useragent_noip -k $uurl_noip
       echo $ipv4 > $tmpfile
@@ -65,11 +69,11 @@ function update_noip2() {
 function update_duckdns3() {
   local tmpfile=/tmp/ip6tmp_duck
   #echo 'Updating duckdns.org'
-  if [[ -r $tmpfile ]]; then
+  if [[ -z $FORCE_UPDATE && -r $tmpfile ]]; then
     if [[ "$ipv6" != "$(cat $tmpfile)" ]]; then
       RESP=$(curl -s -m 30 -k $uurl_duck)
       if [[ $? -eq 0 ]]; then
-        if [[ "$RESP" == 'OK' ]]; then
+        if [[ "$RESP" == OK ]]; then
           echo $ipv6 > $tmpfile
           restart_apache
 	fi
@@ -78,7 +82,7 @@ function update_duckdns3() {
   else
     RESP=$(curl -s -m 30 -k $uurl_duck)
     if [[ $? -eq 0 ]]; then
-      if [[ "$RESP" == 'OK' ]]; then
+      if [[ "$RESP" == OK ]]; then
 	echo $ipv6 > $tmpfile
 	restart_apache
       fi
