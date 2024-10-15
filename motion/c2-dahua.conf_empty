@@ -17,4 +17,5 @@ on_picture_save /etc/motion/evr.pl %f
 snapshot_filename c2_shot
 snapshot_interval 120
 mask_file /etc/motion/1280x720_1.pgm
+lightswitch_percent 82
 stream_port 8082
