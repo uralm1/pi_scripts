@@ -1,15 +1,16 @@
-# camera_id = 1
+camera_id 1
+camera_name C1-DLINK
 width 640
 height 360
 framerate 5
 netcam_url rtsp://192.168.1.21:554/live2.sdp
 netcam_userpass user:pass
-;netcam_params keepalive=off
+#netcam_params keepalive=off
 
-text_left C1-DLINK
+text_left %$
 text_scale 1
 picture_filename c1_ev
-;picture_filename %v-%Y%m%d%H%M%S-%q
+#picture_filename %v-%Y%m%d%H%M%S-%q
 picture_output off
 event_gap 60
 on_picture_save /etc/motion/evr.pl %f
