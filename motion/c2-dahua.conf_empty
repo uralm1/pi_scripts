@@ -2,15 +2,15 @@
 width 1280
 height 720
 framerate 5
-netcam_url rtsp://192.168.1.22:554/cam/realmonitor?channel=1&subtype=2
+netcam_url rtsp://192.168.1.23:554/cam/realmonitor?channel=1&subtype=0
+#netcam_url rtsp://192.168.1.22:554/cam/realmonitor?channel=1&subtype=2
 netcam_userpass user:pass
-netcam_keepalive on
-rtsp_uses_tcp on
+netcam_params keepalive=on
 
 text_left C2-DAHUA
-text_double on
+text_scale 2
 picture_filename %v-%Y%m%d%H%M%S-%q
-output_pictures best
+picture_output best
 event_gap 180
 on_picture_save /etc/motion/evr.pl %f
 snapshot_filename c2_shot
