@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-use Mojolicious::Lite;
+use Mojolicious::Lite -signatures;
 
 # Documentation browser under "/perldoc"
 #plugin 'PODRenderer';
@@ -11,9 +11,18 @@ app->secrets(['efhthcdjfibvigfjdj']);
 plugin 'Config' => { file => 'vv.conf' };
 delete app->defaults->{config}; # safety - not to pass passwords to stashes
 
-helper evdir => sub { return shift->config->{event_dir} };
-helper pdir => sub { return shift->config->{program_dir_url} };
-helper dirurl => sub { return shift->config->{program_url}.'/mv' };
+# run daemon for reverse proxing: MOJO_REVERSE_PROXY=1 vv.pl daemon -m production -p -l http://127.0.0.1:3000
+# rewrite base url to deploy in pdir subdirectory
+hook(before_dispatch => sub($c) {
+  my $url = $c->req->url;
+  my $base = $url->base;
+  push @{$base->path->trailing_slash(1)}, Mojo::Path->new($c->pdir)->leading_slash(0);
+  shift @{$url->path->leading_slash(0)};
+}) if $ENV{MOJO_REVERSE_PROXY};
+
+helper evdir => sub($c) { return $c->config->{event_dir} };
+helper pdir => sub($c) { return $c->config->{program_dir_url} };
+helper dirurl => sub($c) { return $c->config->{program_url}.'/mv' };
 helper max_events_day => sub { return 100 };
 helper cams => sub {
   my $c = shift->config;
@@ -31,14 +40,11 @@ helper npreview => sub { shift;
   return $file;
 };
 
-get '/' => sub {
-  my $c = shift;
+get '/' => sub($c) {
   $c->render(template => 'index');
 } => 'index';
 
-get '/events' => sub {
-  my $c = shift;
-
+get '/events' => sub($c) {
   my %dfh;
   my $dh;
   my $cnt = 0;
@@ -61,8 +67,7 @@ get '/events' => sub {
 };
 
 # /st/0 .. /st/9 streamer helper
-get '/st/:camid' => [camid => qr/\d/] => sub {
-  my $c = shift;
+get '/st/:camid' => [camid => qr/\d/] => sub($c) {
   my $h = $c->cams->[$c->param('camid')]->{streamhtml};
   unless ($h) { return $c->render(text => 'Ошибка!'); }
   $c->render(template => 'st', code => $h);
