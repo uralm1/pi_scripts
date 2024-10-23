@@ -1,0 +1,4 @@
+#!/bin/bash
+
+printf "${USER}:`openssl passwd -apr1`\n"
+
