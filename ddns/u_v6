@@ -20,8 +20,8 @@ uurl_noip="https://$username_noip:$password_noip@dynupdate.no-ip.com/nic/update?
 uurl_afr="https://freedns.afraid.org/dynamic/update.php?$tokenAAAA_afr&address=$ipv6"
 
 
-function restart_apache() {
-  #echo 'Restarting apache'
+function restart_services() {
+  #echo 'Restarting services'
   if [[ -e /usr/sbin/apache2 ]]; then
     if [[ -f /run/apache2/apache2.pid ]]; then
       if [[ -d /run/systemd/system ]]; then
@@ -75,7 +75,7 @@ function update_duckdns3() {
       if [[ $? -eq 0 ]]; then
         if [[ "$RESP" == OK ]]; then
           echo $ipv6 > $tmpfile
-          restart_apache
+          restart_services
 	fi
       fi
     fi
@@ -84,7 +84,7 @@ function update_duckdns3() {
     if [[ $? -eq 0 ]]; then
       if [[ "$RESP" == OK ]]; then
 	echo $ipv6 > $tmpfile
-	restart_apache
+	restart_services
       fi
     fi
   fi
