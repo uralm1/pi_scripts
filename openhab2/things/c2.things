@@ -1,0 +1,19 @@
+Bridge modbus:serial:cont2 [ id=2, port="/dev/rsA", baud=9600, dataBits=8, parity="none", stopBits="1.0", receiveTimeoutMillis=500, timeBetweenTransactionsMillis=60 ] {
+  Bridge poller inp [ type="input", start=10, length=1, refresh=1000, maxTries=1 ] {
+    Thing data temp [ readStart="10", readValueType="int16" ]
+  }
+  Bridge poller err [ type="input", start=254, length=2, refresh=10000, maxTries=1 ] {
+    Thing data ecode [ readStart="254", readValueType="uint16" ]
+    Thing data ecnt [ readStart="255", readValueType="uint16" ]
+  }
+  Bridge poller coils [ type="coil", start=0, length=2, refresh=500, maxTries=1 ] {
+    Thing data rel_heater [ readStart="0", readValueType="bit", writeStart="0", writeValueType="bit", writeType="coil", writeMaxTries=3 ]
+    Thing data rel_12v [ readStart="1", readValueType="bit", writeStart="1", writeValueType="bit", writeType="coil", writeMaxTries=3 ]
+  }
+  Bridge poller regs [ type="holding", start=0, length=3, refresh=1000, maxTries=1 ] {
+    Thing data tmin [ readStart="0", readValueType="int16", writeStart="0", writeValueType="int16", writeType="holding", writeMaxTries=1 ]
+    Thing data tmax [ readStart="1", readValueType="int16", writeStart="1", writeValueType="int16", writeType="holding", writeMaxTries=1 ]
+    Thing data treg_on [ readStart="2", readValueType="int16", writeStart="2", writeValueType="int16", writeType="holding", writeMaxTries=1 ]
+  }
+}
+

@@ -1,0 +1,10 @@
+Bridge modbus:serial:pzem1 [ id=1, port="/dev/rsA", baud=9600, dataBits=8, parity="none", stopBits="1.0", receiveTimeoutMillis=500, timeBetweenTransactionsMillis=60 ] {
+  Bridge poller inp [ type="input", start=0, length=8, refresh=2000, maxTries=1 ] {
+    Thing data vol [ readStart="0", readValueType="uint16", readTransform="JS(div10.js)" ]
+    Thing data cur [ readStart="1", readValueType="uint32_swap", readTransform="JS(div1000.js)" ]
+    Thing data pow [ readStart="3", readValueType="uint32_swap", readTransform="JS(div10.js)" ]
+    Thing data en [ readStart="5", readValueType="uint32_swap", readTransform="JS(div1000.js)" ]
+    Thing data freq [ readStart="7", readValueType="uint16", readTransform="JS(div10.js)" ]
+  }
+}
+
