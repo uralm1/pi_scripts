@@ -1,3 +1,0 @@
-#!/bin/bash
-rm /var/log/openhab2/openhab.log
-rm /tmp/openhab2/openhab.log

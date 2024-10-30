@@ -1,7 +1,0 @@
-rule "Update SystemTime"
-when
-  System started or
-  Time cron "0 0/1 * * * ? *"
-then
-  system_time.postUpdate(now.toString)
-end
