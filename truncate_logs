@@ -7,7 +7,7 @@ truncate -s 0 /var/log/alternatives.log
 truncate -s 0 /var/log/apt/term.log
 truncate -s 0 /var/log/apt/history.log
 
-truncate -s 0 /var/log/openhab2/openhab.log
+truncate -s 0 /var/log/openhab/openhab.log
 truncate -s 0 /var/log/letsencrypt/letsencrypt.log ; rm -f /var/log/letsencrypt/letsencrypt.log.*
 #truncate -s 0 /var/log/apache2/error.log
 truncate -s 0 /var/log/nginx/error.log

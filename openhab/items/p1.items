@@ -1,0 +1,5 @@
+Number:ElectricPotential p1_v "Напряжение сети [%.1f В]" <energy> {channel="modbus:data:pzem1:inp:vol:number"}
+Number:ElectricCurrent p1_i "Ток [%.2f %unit%]" <energy> {channel="modbus:data:pzem1:inp:cur:number"}
+Number:Power p1_p "Мощность [%d Вт]" <energy> {channel="modbus:data:pzem1:inp:pow:number"}
+Number:Energy p1_e "Энергия [%.1f кВтЧ]" <energy> {channel="modbus:data:pzem1:inp:en:number"}
+Number:Frequency p1_f "Частота сети [%.1f %unit%]" <energy> {channel="modbus:data:pzem1:inp:freq:number"}

@@ -1,0 +1,6 @@
+Switch c1_dlink_online "Камера Dlink ping [MAP(sw_ping.map):%s]" <network> (gdebug) { channel="network:pingdevice:192_168_1_21:online" }
+Number:Time c1_dlink_latency "Камера Dlink latency [%d %unit%]" <network>  (gdebug) { channel="network:pingdevice:192_168_1_21:latency", unit="ms" }
+Switch c2_dahua_online "Камера Dahua ping [MAP(sw_ping.map):%s]" <network> (gdebug) { channel="network:pingdevice:192_168_1_23:online" }
+Number:Time c2_dahua_latency "Камера Dahua latency [%d %unit%]" <network>  (gdebug) { channel="network:pingdevice:192_168_1_23:latency", unit="ms" }
+Switch modem_online "Модем ping [MAP(sw_ping.map):%s]" <network> (gdebug) { channel="network:pingdevice:192_168_8_1:online" }
+Number:Time modem_latency "Модем latency [%d %unit%]" <network> (gdebug) { channel="network:pingdevice:192_168_8_1:latency", unit="ms" }

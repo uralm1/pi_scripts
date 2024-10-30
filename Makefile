@@ -4,12 +4,12 @@
 default :
 	@echo "Please use: \"make install\" to install package."
 
-install : install-ddns install-motion install-vv install-openhab2 install-udev
+install : install-ddns install-motion install-vv install-openhab install-udev
 
 DDNS_DESTDIR = /opt/ddns
 MOTION_CONFDIR = /etc/motion
 VV_DESTDIR = /var/www/vv
-OH_CONFDIR = /etc/openhab2
+OH_CONFDIR = /etc/openhab
 UDEV_RULESDIR = /etc/udev/rules.d
 
 install-ddns :
@@ -38,18 +38,18 @@ install-vv :
 	install -m 0644 vv/css/v.css $(VV_DESTDIR)/css
 	@F="vv.conf"; if [ -f vv/$$F ]; then install -m 0644 vv/$$F $(VV_DESTDIR); else echo "WARN: No $$F file found! Empty configuration file is installed."; install -m 0644 vv/$${F}_empty $(VV_DESTDIR)/$$F; fi
 
-install-openhab2 :
-	@echo "Installing openhab2..."
-	install -m 0644 openhab2/items/*.items $(OH_CONFDIR)/items
-	install -m 0644 openhab2/rules/*.rules $(OH_CONFDIR)/rules
-	install -m 0644 openhab2/services/modbus.cfg $(OH_CONFDIR)/services
-	for F in rconf rlog; do install -m 0755 openhab2/services/$$F $(OH_CONFDIR)/services; done
-	install -m 0644 openhab2/sitemaps/default.sitemap $(OH_CONFDIR)/sitemaps
-	install -m 0644 openhab2/things/*.things $(OH_CONFDIR)/things
-	for F in div*.js sw_ping.map; do install -m 0644 openhab2/transform/$$F $(OH_CONFDIR)/transform; done
-	install -m 0755 -d $(OH_CONFDIR)/misc
-	install -m 0644 openhab2/misc/exec.whitelist $(OH_CONFDIR)/misc
-	install -m 0644 openhab2/misc/*.sh $(OH_CONFDIR)/misc
+install-openhab :
+	@echo "Installing openhab..."
+	install -m 0664 -o openhab -g openhab openhab/items/*.items $(OH_CONFDIR)/items
+	install -m 0664 -o openhab -g openhab openhab/rules/*.rules $(OH_CONFDIR)/rules
+	install -m 0664 -o openhab -g openhab openhab/services/addons.cfg $(OH_CONFDIR)/services
+	for F in rlog; do install -m 0755 openhab/services/$$F $(OH_CONFDIR)/services; done
+	install -m 0664 -o openhab -g openhab openhab/sitemaps/*.sitemap $(OH_CONFDIR)/sitemaps
+	install -m 0664 -o openhab -g openhab openhab/things/*.things $(OH_CONFDIR)/things
+	for F in div*.js sw_ping.map; do install -m 0664 -o openhab -g openhab openhab/transform/$$F $(OH_CONFDIR)/transform; done
+	install -m 0755 -o openhab -g openhab -d $(OH_CONFDIR)/misc
+	install -m 0664 -o openhab -g openhab openhab/misc/exec.whitelist $(OH_CONFDIR)/misc
+	install -m 0775 -o openhab -g openhab openhab/misc/*.sh $(OH_CONFDIR)/misc
 
 install-udev :
 	@echo "Installing udev rules..."

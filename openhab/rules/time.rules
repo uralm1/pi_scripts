@@ -1,0 +1,7 @@
+rule "Update SystemTime"
+when
+  System started or
+  Time cron "0 * * * * ? *"
+then
+  system_time.postUpdate(new DateTimeType(now))
+end

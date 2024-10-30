@@ -1,0 +1,2 @@
+Thing telegram:telegramBot:bot1 [ chatIds="", botToken="", longPollingTime=0 ]
+
