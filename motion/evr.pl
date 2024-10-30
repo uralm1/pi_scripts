@@ -18,7 +18,7 @@ my $snapshot1 = 'c1_shot.jpg';
 my $snapshot2 = 'c2_shot.jpg';
 my $keep_num = 120;
 my $timestamp_file = "$ev_dir/telegram.timestamp";
-my $telegram_config = '/etc/openhab2/services/telegram.cfg';
+my $telegram_config = '/etc/openhab/things/telegram.things';
 my $telegram_token;
 my $chat_id;
 
@@ -104,23 +104,7 @@ sub send_telegram {
   my $t = time;
   return if $t - $old_timestamp < 3600;
 
-  if (open(my $fh, '<', $telegram_config)) {
-    while (<$fh>) {
-      if (!defined $chat_id && m/^\S+\.chatId\s*=\s*["']?([A-Za-z0-9:-]+)["']?$/xi) {
-        $chat_id = $1;
-      } elsif (!defined $telegram_token && m/^\S+\.token\s*=\s*["']?([A-Za-z0-9:-]+)["']?$/xi) {
-        $telegram_token = $1;
-      }
-    }
-    close $fh or say 'Telegram configuration file close failure';
-    unless (defined $telegram_token && defined $chat_id) {
-      say "Telegram configuration file $telegram_config doesn't include correct token or chat_id";
-      return;
-    }
-  } else {
-    say "Telegram configuration file $telegram_config doesn't exist.";
-    return;
-  }
+  return unless read_telegram_config($telegram_config);
   my $api = WWW::Telegram::BotAPI->new(token => $telegram_token);
   
   my $file_name = basename $file;
@@ -140,4 +124,29 @@ sub send_telegram {
   } else {
     say "Error updating timestamp file: $!";
   }
+}
+
+sub read_telegram_config {
+  my $config_file = shift or die "Required config filename missing";
+  return 1 if defined $telegram_token && defined $chat_id;
+
+  my $fh;
+  unless (open($fh, '<', $config_file)) {
+    say "Telegram configuration file $config_file doesn't exist.";
+    return 0;
+  }
+  while (<$fh>) {
+    if (!defined $chat_id && m/chatIds\s*=\s*["'][><]?([A-Za-z0-9:-]+)["']/xi) {
+      $chat_id = $1;
+    }
+    if (!defined $telegram_token && m/botToken\s*=\s*["']([A-Za-z0-9:-]+)["']/xi) {
+      $telegram_token = $1;
+    }
+  }
+  close $fh or say 'Telegram configuration file close failure';
+  unless (defined $telegram_token && defined $chat_id) {
+    say "Telegram configuration file $config_file doesn't include correct token or chat_id";
+    return 0;
+  }
+  return 1;
 }
