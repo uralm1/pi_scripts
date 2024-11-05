@@ -1,8 +1,8 @@
 Number:Temperature c2_temp "Температура в шкафу [%d %unit%]" <temperature> {channel="modbus:data:cont2:inp:temp:number"}
 Number c2_ecode "Конт2:Код ошибки [%d]" <error> (gdebug) {channel="modbus:data:cont2:err:ecode:number"}
 Number c2_ecnt "Конт2:Счетчик ошибок [%d]" <error> (gdebug) {channel="modbus:data:cont2:err:ecnt:number"}
-Switch c2_relay_heat "Реле нагревателя" <smoke> {channel="modbus:data:cont2:coils:rel_heater:switch"}
-Switch c2_relay_12 "Реле отключение 12в" <smoke> {channel="modbus:data:cont2:coils:rel_12v:switch"}
+Switch c2_relay_heat "Реле нагревателя" <smoke> {channel="modbus:data:cont2:coils:rel_heater:switch", autoupdate="false"}
+Switch c2_relay_12 "Реле отключение 12в" <smoke> {channel="modbus:data:cont2:coils:rel_12v:switch", autoupdate="false"}
 Number:Temperature c2_t_on "Мин.темп. регулятора [%d %unit%]" <temperature_cold> {channel="modbus:data:cont2:regs:tmin:number"}
 Number:Temperature c2_t_off "Макс.темп.регулятора [%d %unit%]" <temperature_hot> {channel="modbus:data:cont2:regs:tmax:number"}
-Switch c2_treg_on_relay "Вкл.терморегулятора" <heating> {channel="modbus:data:cont2:regs:treg_on:switch"}
+Switch c2_treg_on_relay "Вкл.терморегулятора" <heating> {channel="modbus:data:cont2:regs:treg_on:switch", autoupdate="false"}

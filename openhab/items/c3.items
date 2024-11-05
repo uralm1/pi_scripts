@@ -3,10 +3,10 @@ Number:Temperature c3_temp_out "Температура в парной [%d %unit
 Number:Temperature c3_temp_tp "Температура печи [%d %unit%]" <temperature> {channel="modbus:data:cont3:inp:temp_pech:number"}
 Number c3_ecode "Конт3:Код ошибки [%d]" <error> (gdebug) {channel="modbus:data:cont3:err:ecode:number"}
 Number c3_ecnt "Конт3:Счетчик ошибок [%d]" <error> (gdebug) {channel="modbus:data:cont3:err:ecnt:number"}
-Switch c3_relay1 "Розетка нагреватель" <poweroutlet> {channel="modbus:data:cont3:coils:rel_1:switch"}
-Switch c3_relay2 "Реле2" <poweroutlet> {channel="modbus:data:cont3:coils:rel_2:switch"}
+Switch c3_relay1 "Розетка нагреватель" <poweroutlet> {channel="modbus:data:cont3:coils:rel_1:switch", autoupdate="false"}
+Switch c3_relay2 "Реле2" <poweroutlet> {channel="modbus:data:cont3:coils:rel_2:switch", autoupdate="false"}
 Number:Temperature c3_t_on "Мин.темп.комната [%d %unit%]" <temperature_cold> {channel="modbus:data:cont3:regs:tmin:number"}
 Number:Temperature c3_t_off "Макс.темп.комната [%d %unit%]" <temperature_hot> {channel="modbus:data:cont3:regs:tmax:number"}
-Switch c3_treg_on_relay1 "Вкл.терморегулятора" <heating> {channel="modbus:data:cont3:regs:treg_on_rel_1:switch"}
+Switch c3_treg_on_relay1 "Вкл.терморегулятора" <heating> {channel="modbus:data:cont3:regs:treg_on_rel_1:switch", autoupdate="false"}
 
 Number c3_treg_preset "Пресет режима [%d]" <none>

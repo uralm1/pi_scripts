@@ -1,6 +1,6 @@
-Switch c4_relay1 "Розетка бойлер" <poweroutlet> {channel="modbus:data:cont4:coils:rel_1:switch"}
-Switch c4_relay2 "Теплый пол" <poweroutlet> {channel="modbus:data:cont4:coils:rel_2:switch"}
-//Switch c4_relay3 "Реле3" <poweroutlet> {channel="modbus:data:cont4:coils:rel_3:switch"}
+Switch c4_relay1 "Розетка бойлер" <poweroutlet> {channel="modbus:data:cont4:coils:rel_1:switch", autoupdate="false"}
+Switch c4_relay2 "Теплый пол" <poweroutlet> {channel="modbus:data:cont4:coils:rel_2:switch", autoupdate="false"}
+//Switch c4_relay3 "Реле3" <poweroutlet> {channel="modbus:data:cont4:coils:rel_3:switch", autoupdate="false"}
 Number c4_ecode "Конт4:Код ошибки [%d]" <error> (gdebug) {channel="modbus:data:cont4:err:ecode:number"}
 Number c4_ecnt "Конт4:Счетчик ошибок [%d]" <error> (gdebug) {channel="modbus:data:cont4:err:ecnt:number"}
-Number c4_leds "Индикаторы [%d]" <none> {channel="modbus:data:cont4:regs:leds:number"}
+Number c4_leds "Индикаторы [%d]" <none> {channel="modbus:data:cont4:regs:leds:number", autoupdate="false"}
