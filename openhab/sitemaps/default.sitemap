@@ -53,7 +53,7 @@ sitemap default label="Автоматика" {
       Frame {
         Group item=gsysinfo
         Text item=p1_f
-        Text item=c4_leds
+        Text item=c4_leds valuecolor=[1="red", 2="orange", 3="red"]
       }
       Frame label="Сеть" {
         Text item=c1_dlink_online
@@ -72,9 +72,10 @@ sitemap default label="Автоматика" {
         Text item=c4_ecnt
       }
       Frame label="Аварийные команды" {
-        Switch item=c2_relay_12
-        Switch item=reboot
-        Switch item=reboot_check
+        Switch item=c2_relay_12 labelcolor=["red"]
+        Switch item=reboot labelcolor=["red"]
+        Switch item=reboot_check labelcolor=["red"]
+
       }
     }
   }
