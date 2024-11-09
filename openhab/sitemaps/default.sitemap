@@ -28,7 +28,7 @@ sitemap default label="Автоматика" {
     Selection item=c3_treg_preset mappings=[0="Не установлено", 1="Поддержка 5°С", 2="Работа 20°С", 3="Жарко 25°С"]
   }
   Frame label="Моечная, Парная" {
-    Text item=c3_temp_out
+    Text item=c3_temp_out valuecolor=[>60="orange", >75="red"]
     Text item=c3_temp_tp
     Switch item=c4_relay1
     Switch item=c4_relay2
@@ -36,8 +36,8 @@ sitemap default label="Автоматика" {
   }
   Frame label="Щиток" {
     Text item=p1_v
-    Text item=p1_i
-    Text item=p1_p
+    Text item=p1_i valuecolor=[>10="red"]
+    Text item=p1_p valuecolor=[>450="red", >20="orange"]
     Text item=p1_e
     //Text item=p1_f
   }
