@@ -46,11 +46,11 @@ function mark_reboot {
   if [[ "$1" == 1 ]]; then
     log 'restarting eth1 interface'
     sleep 1
-    #FIXME
     #/sbin/dhcpcd -q -k eth1
+    nmcli device down eth1
     sleep 10
-    #FIXME
     #/sbin/dhcpcd -q -n eth1
+    nmcli device up eth1
     sleep 5
   else
     log 'rebooting the system'
