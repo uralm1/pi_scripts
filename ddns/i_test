@@ -18,6 +18,23 @@ function log {
   echo "$(date '+%F %T') $1" >> $log_file
 }
 
+function restart_net {
+  log 'restarting eth1 interface'
+  sleep 1
+  #/sbin/dhcpcd -q -k eth1
+  nmcli device down eth1
+  sleep 10
+  #/sbin/dhcpcd -q -n eth1
+  nmcli device up eth1
+  sleep 5
+}
+
+function reboot_system {
+  log 'rebooting the system'
+  sleep 10
+  /sbin/shutdown -r --no-wall now
+}
+
 function check_inet {
   if ping -6 -c 1 $inet_ip1 &>/dev/null
   then
@@ -44,23 +61,14 @@ function check_inet {
 function mark_reboot {
   echo "$1" > $mark_file
   if [[ "$1" == 1 ]]; then
-    log 'restarting eth1 interface'
-    sleep 1
-    #/sbin/dhcpcd -q -k eth1
-    nmcli device down eth1
-    sleep 10
-    #/sbin/dhcpcd -q -n eth1
-    nmcli device up eth1
-    sleep 5
+    restart_net
   else
-    log 'rebooting the system'
-    sleep 10
-    /sbin/shutdown -r --no-wall now
+    reboot_system
   fi
 }
 
 ### program start
-sleep $[ ($RANDOM % 60) + 1 ]s
+sleep $(( (RANDOM % 60) + 1 ))
 if check_inet; then
   # success, remove marks
   rm -f $mark_file

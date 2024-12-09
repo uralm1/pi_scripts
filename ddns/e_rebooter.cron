@@ -1,0 +1,1 @@
+23 7 * * * root /opt/ddns/e_rebooter &>/dev/null

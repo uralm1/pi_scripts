@@ -1,0 +1,52 @@
+#!/bin/bash
+
+url='https://example.github.io/hidden.json'
+mark_file=/var/tmp/e_rebooter.mark
+
+function reboot_system {
+  #echo 'Rebooting the system'
+  sleep 10
+  /sbin/shutdown -r --no-wall now
+}
+
+function rewrite_markfile {
+  echo "$seq" > $mark_file
+}
+
+### program start
+json=$(curl -s -q -f "$url")
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]]; then
+  logger 'e_rebooter: Url download failure. Exiting.'
+  exit 1
+fi
+#echo "$json"
+
+seq=$(sed -n 's/^.*"em_sequence"\s*:\s*\([^, \n]*\).*/\1/p' <<<"$json")
+# shellcheck disable=SC2181
+if [[ $? -ne 0 || -z "$seq" ]]; then
+  logger 'e_rebooter: Invalid json value. Exiting.'
+  exit 2
+fi
+#echo "$seq"
+
+if [[ ! -r $mark_file ]]; then
+  rewrite_markfile
+  exit 0
+fi
+
+# mark file exists
+mark=$(cat $mark_file)
+secdiff=$((seq - mark))
+# shellcheck disable=SC2181
+if [[ $? -ne 0 ]]; then
+  logger 'e_rebooter: Can not calculate difference. Rewriting mark file.'
+  rewrite_markfile
+  exit 0
+fi
+#echo $secdiff
+[[ $secdiff -ne 0 ]] && rewrite_markfile
+
+[[ $secdiff -eq 3 ]] && reboot_system
+
+exit 0

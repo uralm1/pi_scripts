@@ -40,15 +40,15 @@ function update_freedns1() {
     #echo 'tmpfile exists'
     if [[ "$ipv6" != "$(cat $tmpfile)" ]]; then
       #echo 'not equal'
-      curl -m 30 -k $uurl_afr
-      echo $ipv6 > $tmpfile
+      curl -m 30 -k "$uurl_afr"
+      echo "$ipv6" > $tmpfile
     #else
       #echo 'equals'
     fi
   else
     #echo 'tmpfile does not exist'
-    curl -m 30 -k $uurl_afr
-    echo $ipv6 > $tmpfile
+    curl -m 30 -k "$uurl_afr"
+    echo "$ipv6" > $tmpfile
   fi
 }
 
@@ -57,12 +57,12 @@ function update_noip2() {
   #echo 'Updating no-ip.com'
   if [[ -z $FORCE_UPDATE && -r $tmpfile ]]; then
     if [[ "$ipv4" != "$(cat $tmpfile)" ]]; then
-      curl -m 30 -A $useragent_noip -k $uurl_noip
-      echo $ipv4 > $tmpfile
+      curl -m 30 -A $useragent_noip -k "$uurl_noip"
+      echo "$ipv4" > $tmpfile
     fi
   else
-    curl -m 30 -A $useragent_noip -k $uurl_noip
-    echo $ipv4 > $tmpfile
+    curl -m 30 -A $useragent_noip -k "$uurl_noip"
+    echo "$ipv4" > $tmpfile
   fi
 }
 
@@ -71,19 +71,21 @@ function update_duckdns3() {
   #echo 'Updating duckdns.org'
   if [[ -z $FORCE_UPDATE && -r $tmpfile ]]; then
     if [[ "$ipv6" != "$(cat $tmpfile)" ]]; then
-      RESP=$(curl -s -m 30 -k $uurl_duck)
+      RESP=$(curl -s -m 30 -k "$uurl_duck")
+      # shellcheck disable=SC2181
       if [[ $? -eq 0 ]]; then
         if [[ "$RESP" == OK ]]; then
-          echo $ipv6 > $tmpfile
+          echo "$ipv6" > $tmpfile
           restart_services
 	fi
       fi
     fi
   else
-    RESP=$(curl -s -m 30 -k $uurl_duck)
+    RESP=$(curl -s -m 30 -k "$uurl_duck")
+    # shellcheck disable=SC2181
     if [[ $? -eq 0 ]]; then
       if [[ "$RESP" == OK ]]; then
-	echo $ipv6 > $tmpfile
+	echo "$ipv6" > $tmpfile
 	restart_services
       fi
     fi
