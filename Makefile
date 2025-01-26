@@ -41,6 +41,7 @@ install-vv :
 install-openhab :
 	@echo "Installing openhab..."
 	install -m 0664 -o openhab -g openhab openhab/items/*.items $(OH_CONFDIR)/items
+	install -m 0664 -o openhab -g openhab openhab/persistence/*.persist $(OH_CONFDIR)/persistence
 	install -m 0664 -o openhab -g openhab openhab/rules/*.rules $(OH_CONFDIR)/rules
 	install -m 0664 -o openhab -g openhab openhab/services/addons.cfg $(OH_CONFDIR)/services
 	for F in rlog; do install -m 0755 openhab/services/$$F $(OH_CONFDIR)/services; done

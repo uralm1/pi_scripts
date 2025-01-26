@@ -1,5 +1,5 @@
-Number:Temperature c3_temp_in "Температура в комнате [%d %unit%]" <temperature> {channel="modbus:data:cont3:inp:temp_room:number"}
-Number:Temperature c3_temp_out "Температура в парной [%d %unit%]" <temperature> {channel="modbus:data:cont3:inp:temp_ban:number"}
+Number:Temperature c3_temp_in "Температура в комнате [%d %unit%]" <temperature> (gtemp1) {channel="modbus:data:cont3:inp:temp_room:number"}
+Number:Temperature c3_temp_out "Температура в парной [%d %unit%]" <temperature> (gtemp1) {channel="modbus:data:cont3:inp:temp_ban:number"}
 Number:Temperature c3_temp_tp "Температура печи [%d %unit%]" <temperature> {channel="modbus:data:cont3:inp:temp_pech:number"}
 Number c3_ecode "Конт3:Код ошибки [%d]" <error> (gdebug) {channel="modbus:data:cont3:err:ecode:number"}
 Number c3_ecnt "Конт3:Счетчик ошибок [%d]" <error> (gdebug) {channel="modbus:data:cont3:err:ecnt:number"}

@@ -1,0 +1,15 @@
+Strategies {
+  every1Min: "0 * * * * ?"
+  every5Min: "0 */5 * * * ?"
+  every10Min: "0 */10 * * * ?"
+}
+
+Items {
+  //cpu_load:strategy = everyChange,every1Min
+  c2_temp:strategy = every1Min
+  c3_temp_in:strategy = every10Min
+  c3_temp_out:strategy = every10Min
+  c3_temp_tp:strategy = every5Min
+  p1_p:strategy = every5Min
+}
+

@@ -1,5 +1,6 @@
 Group gsysinfo "Системная информация" <none>
 Group gdebug "Отладка" <none>
+Group gtemp1 "Температуры" <temperature>
 
 //String vid_link "<a href='https://example.duckdns.org/testsite/vid.html'>video link</a>"
 

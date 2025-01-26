@@ -49,6 +49,14 @@ sitemap default label="Автоматика" {
     Selection item=c2_treg_on_relay mappings=[OFF="Отключен", ON="Включен"]
   }
   Frame label="Прочее" {
+    Text label="Графики" icon="line" {
+      Frame {
+        //Chart item=cpu_load period=1h refresh=10000 label="CPU"
+        Chart item=gtemp1 period=12h refresh=10000 legend=true label="Температуры"
+        Chart item=c3_temp_tp period=12h refresh=10000 label="Температура печи"
+        Chart item=p1_p period=12h refresh=10000 label="Мощность"
+      }
+    }
     Text label="Отладка" icon="zoom" {
       Frame {
         Group item=gsysinfo
@@ -75,7 +83,6 @@ sitemap default label="Автоматика" {
         Switch item=c2_relay_12 labelcolor=["red"]
         Switch item=reboot labelcolor=["red"]
         Switch item=reboot_check labelcolor=["red"]
-
       }
     }
   }
