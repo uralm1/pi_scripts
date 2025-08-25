@@ -19,13 +19,15 @@ function log {
 }
 
 function restart_net {
-  log 'restarting eth1 interface'
+  log 'restarting modem connection'
   sleep 1
   #/sbin/dhcpcd -q -k eth1
-  nmcli device down eth1
+  #nmcli device down eth1
+  nmcli connection down modem
   sleep 10
   #/sbin/dhcpcd -q -n eth1
-  nmcli device up eth1
+  #nmcli device up eth1
+  nmcli connection up modem
   sleep 5
 }
 
