@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 use Mojolicious::Lite -signatures;
+use POSIX qw(strftime);
+use Fcntl qw(:flock);
 
 # Documentation browser under "/perldoc"
 #plugin 'PODRenderer';
@@ -9,7 +11,7 @@ app->log->level('info');
 app->secrets(['efhthcdjfibvigfjdj']);
 
 plugin 'Config' => { file => 'vv.conf' };
-delete app->defaults->{config}; # safety - not to pass passwords to stashes
+delete app->defaults->{config}; # safety - don't pass passwords to stashes
 
 # run daemon for reverse proxing: MOJO_REVERSE_PROXY=1 vv.pl daemon -m production -p -l http://127.0.0.1:3000
 # rewrite base url to deploy in pdir subdirectory
@@ -20,27 +22,19 @@ hook(before_dispatch => sub($c) {
   shift @{$url->path->leading_slash(0)};
 }) if $ENV{MOJO_REVERSE_PROXY};
 
-helper evdir => sub($c) { return $c->config->{event_dir} };
 helper pdir => sub($c) { return $c->config->{program_dir_url} };
-helper dirurl => sub($c) { return $c->config->{program_url}.'/mv' };
-helper max_events_day => sub { return 100 };
-helper cams => sub {
-  my $c = shift->config;
-  my $cr = $c->{cams};
-  for (@$cr) { 
-    # create streamhtml-s
-    $_->{streamhtml} = "<iframe width=\"$_->{width}\" height=\"$_->{height}\" src=\"$c->{program_url}$_->{src}\" frameborder=\"0\" allowfullscreen></iframe>";
-  }
-  return $cr;
-};
+helper MAX_EVENTS_DAY => sub($) { 100 };
 
-helper npreview => sub { shift;
-  my $file = shift;
+helper npreview => sub($, $file) {
   $file =~ s/^(.+)\.jpg$/$1_preview.jpg/;
   return $file;
 };
 
 get '/' => sub($c) {
+  for my $cam (@{$c->config->{cams}}) {
+    read_cam_directories($cam);
+  }
+  #say Mojo::Util::dumper $c->config->{cams};
   $c->render(template => 'index');
 } => 'index';
 
@@ -48,7 +42,7 @@ get '/events' => sub($c) {
   my %dfh;
   my $dh;
   my $cnt = 0;
-  opendir($dh, $c->evdir) or return $c->render(text => 'Чтение каталога - Ошибка!');
+  opendir($dh, $c->config->{motion_dir}) or return $c->render(text => 'Чтение каталога - Ошибка!');
   while (readdir $dh) {
     if (m#^(\d{2,})-(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})-(\d{2,})\.jpg$#) {
       #say $_ . " $1 - $2 $3 $4 $5 $6 $7 - $8";
@@ -56,7 +50,6 @@ get '/events' => sub($c) {
       $dfh{$k} = { info => "$4.$3.$2" } unless defined $dfh{$k};
       $dfh{$k}{"$2$3$4$5$6$7$1"} = {
 	file => $_,
-	ev => $1,
 	info => "$5:$6:$7 $4.$3.$2 - $1",
       };
       $cnt++;
@@ -66,15 +59,149 @@ get '/events' => sub($c) {
   $c->render(template => 'events', dfh => \%dfh, dp => $c->param('d'), total => $cnt);
 };
 
+# /ev/0 .. /ev/99 events pages
+get '/ev/:camid' => [camid => qr/\d{1,2}/] => sub($c) {
+  my $cam = $c->config->{cams}[$c->param('camid')];
+  unless ($cam) { return $c->render(text => 'Ошибка!'); }
+  read_cam_directories($cam);
+
+  $c->render(template => 'ev', dfh => $cam->{dfh}, camid => $c->param('camid'), dp => $c->param('d'), total => $cam->{totalev});
+};
+
 # /st/0 .. /st/9 streamer helper
 get '/st/:camid' => [camid => qr/\d/] => sub($c) {
-  my $h = $c->cams->[$c->param('camid')]->{streamhtml};
-  unless ($h) { return $c->render(text => 'Ошибка!'); }
+  my $cam = $c->config->{cams}[$c->param('camid')];
+  unless ($cam) { return $c->render(text => 'Ошибка!'); }
+  my $purl = $c->config->{program_url};
+  # create streamhtml
+  my $h = "<iframe width=\"$cam->{width}\" height=\"$cam->{height}\" src=\"$purl$cam->{stream_url}\" frameborder=\"0\" allowfullscreen></iframe>";
+
   $c->render(template => 'st', code => $h);
 };
 
 
 app->start;
+exit 0;
+
+
+sub read_cam_directories($cam) {
+  my (%s, %dfh, $tot);
+  if ($cam->{dir_recursive}) {
+    $tot = process_recursive($cam->{dir}, '', $cam->{shot_regex}, $cam->{motion_regex}, \%s, \%dfh);
+  } else {
+    $tot = process_nr($cam->{dir}, $cam->{shot_regex}, $cam->{motion_regex}, \%s, \%dfh);
+  }
+  $cam->{sf} = \%s; # $s{file} can be undef
+  $cam->{dfh} = \%dfh;
+  $cam->{totalev} = $tot;
+}
+
+sub process_nr($dir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
+  opendir(my $dh, $dir) or die "$dir opendir failed";
+
+  $s_ref->{file} = '' unless defined $s_ref->{file};
+  my $cnt = 0;
+  while (readdir $dh) {
+    my $p = "$dir/$_";
+    if (-f $p) {
+      #say $p;
+      next if check_locked($p);
+      next if m#preview\.jpg$#;
+      my $mtime = get_file_mtime($p);
+      if (m#$shot_re#) {
+        if (($_ cmp $s_ref->{file}) > 0) {
+	  $s_ref->{file} = $_;
+	  $s_ref->{info} = humaninfo($_, $mtime);
+	}
+      } elsif (m#$motion_re#) {
+	next unless defined $mtime;
+	my $k = YMDkey($mtime);
+        $dfh_ref->{$k} = { info => humanDMY($mtime) } unless defined $dfh_ref->{$k};
+        $dfh_ref->{$k}{$_} = {
+	  file => $_,
+	  info => humaninfo($_, $mtime),
+        };
+        ++$cnt;
+      }# else { say "Invalid $p"; }
+    }
+  }
+
+  closedir($dh);
+  $s_ref->{file} = undef if $s_ref->{file} eq '';
+  return $cnt;
+}
+
+sub process_recursive($dir, $subdir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
+  my $fulldir = $dir;
+  $fulldir .= '/'.$subdir unless $subdir eq '';
+
+  opendir(my $dh, $fulldir) or die "$fulldir opendir failed";
+
+  $s_ref->{file} = '' unless defined $s_ref->{file};
+  my $cnt = 0;
+  while (readdir $dh) {
+    my $p = "$fulldir/$_";
+    my $subp = $subdir eq '' ? $_ : "$subdir/$_";
+    if (-f $p) {
+      #say $p;
+      next if check_locked($p);
+      next if m#preview\.jpg$#;
+      my $mtime = get_file_mtime($p);
+      if (m#$shot_re#) {
+        if (($subp cmp $s_ref->{file}) > 0) {
+          $s_ref->{file} = $subp;
+	  $s_ref->{info} = humaninfo($subp, $mtime);
+	}
+      } elsif (m#$motion_re#) {
+	next unless defined $mtime;
+	my $k = YMDkey($mtime);
+        $dfh_ref->{$k} = { info => humanDMY($mtime) } unless defined $dfh_ref->{$k};
+        $dfh_ref->{$k}{$subp} = {
+	  file => $subp,
+	  info => humaninfo($subp, $mtime),
+        };
+        ++$cnt;
+      }# elsif (!m#^DVR#) {
+	#say "Invalid $p";
+      #}
+    } elsif (-d $p && m#^[^.]#) {
+      $cnt += process_recursive($dir, $subp, $shot_re, $motion_re, $s_ref, $dfh_ref);
+    }
+  }
+
+  closedir($dh);
+  $s_ref->{file} = undef if $s_ref->{file} eq '';
+  return $cnt;
+}
+
+sub get_file_mtime($file) {
+  return (stat($file))[9];
+}
+
+sub YMDkey($epoch) {
+  return strftime('%Y%m%d', localtime($epoch));
+}
+
+sub humanDMY($epoch) {
+  return strftime('%d.%m.%Y', localtime($epoch));
+}
+
+sub humaninfo($file, $epoch) {
+  my $humantime = defined $epoch ? strftime('%H:%M:%S %d.%m.%Y', localtime($epoch)) : '<нет данных>';
+  my $fileid = ($file =~ m#^(.*[a-z/])?([^/]+)\.jpg$#) ? $2 : '';
+  return "$humantime $fileid";
+}
+
+sub check_locked($file) {
+  open(my $fh, '<', $file) or return 1;
+  if (flock($fh, LOCK_SH | LOCK_NB)) {
+    flock($fh, LOCK_UN);
+    close($fh);
+    return 0;
+  }
+  close($fh);
+  return 1;
+}
 
 
 __DATA__
@@ -82,14 +209,26 @@ __DATA__
 @@ index.html.ep
 % title 'Видеонаблюдение';
 % layout 'default';
-% foreach (@{cams()}) {
+% my $idx;
+% while (($idx, $_) = each @{config->{cams}}) {
 <p><b><%= $_->{name} %></b>
-%== link_to 'Видеопоток' => $_->{streampage} => (class => 'camlink')
+%== link_to 'Видеопоток' => url_for('stcamid', camid => $idx) => (class => 'camlink')
 % if ($_->{eventcam}) {
-%== link_to 'События' => 'events' => (class => 'camlink')
+%== link_to 'СобытияOld' => 'events' => (class => 'camlink')
+%== link_to "События" => url_for('evcamid', camid => $idx) => (class => 'camlink')
 % }
 </p>
-<a href="<%== dirurl.'/'.$_->{snapshotfile} %>"><img class="shp" src="<%== dirurl.'/'.npreview($_->{snapshotfile}) %>" alt="<%== $_->{snapshotfile} %>"></a>
+% my $f = $_->{sf}{file};
+% if ($f) {
+<div class="ev"><%= $_->{sf}{info} =%><br>
+% my $durl = $_->{dir_url};
+<a href="<%== $durl.'/'.$f %>"><img class="shp" src="<%== $durl.'/'.npreview($f) %>" alt="<%== $f %>"></a>
+</div>
+% } else {
+Файл камеры отсутствует<br>
+% }
+% my $mdurl = config->{motion_dir_url};
+<a href="<%== $mdurl.'/'.$_->{motion_snapshotfile} %>"><img class="shp" src="<%== $mdurl.'/'.npreview($_->{motion_snapshotfile}) %>" alt="<%== $_->{motion_snapshotfile} %>"></a>
 % }
 
 
@@ -113,17 +252,52 @@ __DATA__
 % my $c = 1;
 % foreach (sort { $b cmp $a } keys %{$dfh->{$cur}}) {
 %   next if $_ eq 'info';
-%   if ($c > max_events_day) {
+%   if ($c > MAX_EVENTS_DAY) {
 <div class="ev">Внимание! Остальные события не показаны</div>
 %     last;
 %   }
 %   my $fhref = $dfh->{$cur}->{$_};
 %   my $f = $fhref->{file};
 <div class="ev"><%= $fhref->{info} =%><br>
-%== link_to image(dirurl.'/'.npreview($f), alt => 'Event'.$fhref->{ev}, (class => 'evp')) => dirurl.'/'.$f
+%== link_to image(config->{motion_dir_url}.'/'.npreview($f), alt => 'Event '.$fhref->{info}, (class => 'evp')) => config->{motion_dir_url}.'/'.$f
 </div>
 %   $c++;
 % }
+
+@@ ev.html.ep
+% title 'События';
+% layout 'default';
+% my $cam = config->{cams}[$camid];
+<p><b>События - <%= $cam->{name} %></b><br>
+<span class="camlink"><%== $total %> файлов</span>
+%== link_to 'Возврат к камерам' => 'index' => (class => 'camlink')
+<br>
+% my $firstkey;
+% my $dp_ok;
+% for (sort { $b cmp $a } keys %{$dfh}) {
+%   $firstkey = $_ unless defined $firstkey;
+%   $dp_ok = 1 if defined $dp && $dp eq $_;
+%== link_to $dfh->{$_}{info} => url_for('evcamid', camid => $camid)->query(d => $_) => (class => 'daylink')
+% }
+</p>
+% $firstkey = 'none' unless defined $firstkey;
+% my $cur = ($dp_ok) ? $dp : $firstkey;
+% my $c = 1;
+% for (sort { $b cmp $a } keys %{$dfh->{$cur}}) {
+%   next if $_ eq 'info';
+%   if ($c > MAX_EVENTS_DAY) {
+<div class="ev">Внимание! Остальные события не показаны</div>
+%     last;
+%   }
+%   my $fhref = $dfh->{$cur}->{$_};
+%   my $f = $fhref->{file};
+<div class="ev"><%= $fhref->{info} =%><br>
+% my $durl = $cam->{dir_url};
+%== link_to image($durl.'/'.npreview($f), alt => 'Event '.$fhref->{info}, (class => 'evp')) => $durl.'/'.$f
+</div>
+%   $c++;
+% }
+
 
 @@ st.html.ep
 % title 'Видеопоток';
