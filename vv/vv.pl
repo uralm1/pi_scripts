@@ -6,8 +6,8 @@ use Fcntl qw(:flock);
 # Documentation browser under "/perldoc"
 #plugin 'PODRenderer';
 
-app->mode('production');
-app->log->level('info');
+#app->mode('production');
+#app->log->level('info');
 app->secrets(['efhthcdjfibvigfjdj']);
 
 plugin 'Config' => { file => 'vv.conf' };
@@ -22,7 +22,13 @@ hook(before_dispatch => sub($c) {
   shift @{$url->path->leading_slash(0)};
 }) if $ENV{MOJO_REVERSE_PROXY};
 
-helper pdir => sub($c) { return $c->config->{program_dir_url} };
+helper purlpath => sub($c, $dir) { Mojo::URL->new($c->config->{program_url})->path($dir) };
+helper urlfile => sub($c, $url, $file) {
+  my $u = $url->clone;
+  $u->path->trailing_slash(1);
+  $u->path($file);
+};
+helper pdir => sub($c) { $c->config->{program_dir_url} };
 helper MAX_EVENTS_DAY => sub($) { 100 };
 
 helper npreview => sub($, $file) {
@@ -62,7 +68,7 @@ get '/events' => sub($c) {
 # /ev/0 .. /ev/99 events pages
 get '/ev/:camid' => [camid => qr/\d{1,2}/] => sub($c) {
   my $cam = $c->config->{cams}[$c->param('camid')];
-  unless ($cam) { return $c->render(text => 'Ошибка!'); }
+  return $c->render(text => 'Ошибка!') unless $cam;
   read_cam_directories($cam);
 
   $c->render(template => 'ev', dfh => $cam->{dfh}, camid => $c->param('camid'), dp => $c->param('d'), total => $cam->{totalev});
@@ -71,12 +77,9 @@ get '/ev/:camid' => [camid => qr/\d{1,2}/] => sub($c) {
 # /st/0 .. /st/9 streamer helper
 get '/st/:camid' => [camid => qr/\d/] => sub($c) {
   my $cam = $c->config->{cams}[$c->param('camid')];
-  unless ($cam) { return $c->render(text => 'Ошибка!'); }
-  my $purl = $c->config->{program_url};
-  # create streamhtml
-  my $h = "<iframe width=\"$cam->{width}\" height=\"$cam->{height}\" src=\"$purl$cam->{stream_url}\" frameborder=\"0\" allowfullscreen></iframe>";
+  return $c->render(text => 'Ошибка!') unless $cam;
 
-  $c->render(template => 'st', code => $h);
+  $c->render(template => 'st', width => $cam->{width}, height => $cam->{height}, url => $c->purlpath($cam->{stream_url}));
 };
 
 
@@ -220,14 +223,14 @@ __DATA__
 </p>
 % if (my $f = $_->{sf}{file}) {
 <div class="ev"><%= $_->{sf}{info} =%><br>
-% my $durl = config->{program_url}.$_->{dir_url};
-<a href="<%== $durl.'/'.$f %>"><img class="shp" src="<%== $durl.'/'.npreview($f) %>" alt="<%== $f %>"></a>
+% my $durl = purlpath($_->{dir_url});
+<a href="<%== urlfile($durl, $f) %>"><img class="shp" src="<%== urlfile($durl, npreview($f)) %>" alt="<%== $f %>"></a>
 </div>
 % } else {
 Файл камеры отсутствует<br>
 % }
-% my $mdurl = config->{program_url}.config->{motion_dir_url};
-<a href="<%== $mdurl.'/'.$_->{motion_snapshotfile} %>"><img class="shp" src="<%== $mdurl.'/'.npreview($_->{motion_snapshotfile}) %>" alt="<%== $_->{motion_snapshotfile} %>"></a>
+% my $mdurl = purlpath(config->{motion_dir_url});
+<a href="<%== urlfile($mdurl, $_->{motion_snapshotfile}) %>"><img class="shp" src="<%== urlfile($mdurl, npreview($_->{motion_snapshotfile})) %>" alt="<%== $_->{motion_snapshotfile} %>"></a>
 % }
 
 
@@ -258,8 +261,8 @@ __DATA__
 %   my $fhref = $dfh->{$cur}->{$_};
 %   my $f = $fhref->{file};
 <div class="ev"><%= $fhref->{info} =%><br>
-% my $mdurl = config->{program_url}.config->{motion_dir_url};
-%== link_to image($mdurl.'/'.npreview($f), alt => 'Event '.$fhref->{info}, (class => 'evp')) => $mdurl.'/'.$f
+% my $mdurl = purlpath(config->{motion_dir_url});
+%== link_to image(urlfile($mdurl, npreview($f)), alt => 'Event '.$fhref->{info}, (class => 'evp')) => urlfile($mdurl, $f)
 </div>
 %   ++$c;
 % }
@@ -292,17 +295,16 @@ __DATA__
 %   my $fhref = $dfh->{$cur}->{$_};
 %   my $f = $fhref->{file};
 <div class="ev"><%= $fhref->{info} =%><br>
-% my $durl = config->{program_url}.$cam->{dir_url};
-%== link_to image($durl.'/'.npreview($f), alt => 'Event '.$fhref->{info}, (class => 'evp')) => $durl.'/'.$f
+% my $durl = purlpath($cam->{dir_url});
+%== link_to image(urlfile($durl, npreview($f)), alt => 'Event '.$fhref->{info}, (class => 'evp')) => urlfile($durl, $f)
 </div>
 %   ++$c;
 % }
 
-
 @@ st.html.ep
 % title 'Видеопоток';
 % layout 'default';
-%== $code
+<iframe width="<%== $width %>" height="<%== $height %>" src="<%== $url %>" frameborder="0" allowfullscreen></iframe>
 
 @@ layouts/default.html.ep
 <!DOCTYPE html>
