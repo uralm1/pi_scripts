@@ -214,20 +214,19 @@ __DATA__
 <p><b><%= $_->{name} %></b>
 %== link_to 'Видеопоток' => url_for('stcamid', camid => $idx) => (class => 'camlink')
 % if ($_->{eventcam}) {
-%== link_to 'СобытияOld' => 'events' => (class => 'camlink')
+%== link_to 'Old' => 'events' => (class => 'camlink')
 %== link_to "События" => url_for('evcamid', camid => $idx) => (class => 'camlink')
 % }
 </p>
-% my $f = $_->{sf}{file};
-% if ($f) {
+% if (my $f = $_->{sf}{file}) {
 <div class="ev"><%= $_->{sf}{info} =%><br>
-% my $durl = $_->{dir_url};
+% my $durl = config->{program_url}.$_->{dir_url};
 <a href="<%== $durl.'/'.$f %>"><img class="shp" src="<%== $durl.'/'.npreview($f) %>" alt="<%== $f %>"></a>
 </div>
 % } else {
 Файл камеры отсутствует<br>
 % }
-% my $mdurl = config->{motion_dir_url};
+% my $mdurl = config->{program_url}.config->{motion_dir_url};
 <a href="<%== $mdurl.'/'.$_->{motion_snapshotfile} %>"><img class="shp" src="<%== $mdurl.'/'.npreview($_->{motion_snapshotfile}) %>" alt="<%== $_->{motion_snapshotfile} %>"></a>
 % }
 
@@ -259,9 +258,10 @@ __DATA__
 %   my $fhref = $dfh->{$cur}->{$_};
 %   my $f = $fhref->{file};
 <div class="ev"><%= $fhref->{info} =%><br>
-%== link_to image(config->{motion_dir_url}.'/'.npreview($f), alt => 'Event '.$fhref->{info}, (class => 'evp')) => config->{motion_dir_url}.'/'.$f
+% my $mdurl = config->{program_url}.config->{motion_dir_url};
+%== link_to image($mdurl.'/'.npreview($f), alt => 'Event '.$fhref->{info}, (class => 'evp')) => $mdurl.'/'.$f
 </div>
-%   $c++;
+%   ++$c;
 % }
 
 @@ ev.html.ep
@@ -292,10 +292,10 @@ __DATA__
 %   my $fhref = $dfh->{$cur}->{$_};
 %   my $f = $fhref->{file};
 <div class="ev"><%= $fhref->{info} =%><br>
-% my $durl = $cam->{dir_url};
+% my $durl = config->{program_url}.$cam->{dir_url};
 %== link_to image($durl.'/'.npreview($f), alt => 'Event '.$fhref->{info}, (class => 'evp')) => $durl.'/'.$f
 </div>
-%   $c++;
+%   ++$c;
 % }
 
 
