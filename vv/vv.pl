@@ -90,9 +90,11 @@ exit 0;
 sub read_cam_directories($cam) {
   my (%s, %dfh, $tot);
   if ($cam->{dir_recursive}) {
-    $tot = process_recursive($cam->{dir}, '', $cam->{shot_regex}, $cam->{motion_regex}, \%s, \%dfh);
+    $tot = process_recursive($cam->{dir}, '',
+      $cam->{shot_regex}, $cam->{eventcam} ? $cam->{motion_regex} : undef, \%s, \%dfh);
   } else {
-    $tot = process_nr($cam->{dir}, $cam->{shot_regex}, $cam->{motion_regex}, \%s, \%dfh);
+    $tot = process_nr($cam->{dir},
+      $cam->{shot_regex}, $cam->{eventcam} ? $cam->{motion_regex} : undef, \%s, \%dfh);
   }
   $cam->{sf} = \%s; # $s{file} can be undef
   $cam->{dfh} = \%dfh;
@@ -116,7 +118,7 @@ sub process_nr($dir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
 	  $s_ref->{file} = $_;
 	  $s_ref->{info} = humaninfo($_, $mtime);
 	}
-      } elsif (m#$motion_re#) {
+      } elsif (defined($motion_re) && m#$motion_re#) {
 	next unless defined $mtime;
 	my $k = YMDkey($mtime);
         $dfh_ref->{$k} = { info => humanDMY($mtime) } unless defined $dfh_ref->{$k};
@@ -155,7 +157,7 @@ sub process_recursive($dir, $subdir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
           $s_ref->{file} = $subp;
 	  $s_ref->{info} = humaninfo($subp, $mtime);
 	}
-      } elsif (m#$motion_re#) {
+      } elsif (defined($motion_re) && m#$motion_re#) {
 	next unless defined $mtime;
 	my $k = YMDkey($mtime);
         $dfh_ref->{$k} = { info => humanDMY($mtime) } unless defined $dfh_ref->{$k};
