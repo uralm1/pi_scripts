@@ -1,0 +1,38 @@
+# Net::FTPServer configuration file.
+#
+# Normally this file resides in /etc/ftpd.conf, although you
+# can override this by supplying a `-C filename' argument on
+# the command line for ftpd.
+#
+# Documentation for this file is in the Net::FTPServer(3)
+# manual page, section CONFIGURATION.
+
+local address: 127.0.0.1
+port: 8021
+#debug: 1
+#daemon mode: 1
+#run in background: 1
+
+enable syslog: 0
+#error log: /tmp/ftpd.errors
+client logging: /tmp/ftpd.log
+#xfer logging: /tmp/xferlog
+
+timeout: 300
+max clients: 10
+max login attempts: 1
+limit memory: -1
+limit nr processes: -1
+limit nr files: -1
+
+#greeting: brief
+enable archive mode: 0
+allow anonymous: 1
+pam authentication: 0
+user access control rule: $user_is_anonymous
+root directory: /
+home directory: /tmp/asd
+
+retrieve rule: $filename =~ m#^DVR#
+store rule: $dirname =~ m#^/tmp/#
+

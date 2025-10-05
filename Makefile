@@ -20,6 +20,8 @@ install-ddns :
 	install -m 0644 ddns/refresh.cron /etc/cron.d/ddns_refresh
 	install -m 0644 ddns/i_test.cron /etc/cron.d/i_test
 	@F="ddns.conf"; if [ -f ddns/$$F ]; then install -m 0644 ddns/$$F $(DDNS_DESTDIR); else echo "WARN: No $$F file found! Empty configuration file is installed."; install -m 0644 ddns/$${F}_empty $(DDNS_DESTDIR)/$$F; fi
+	install -m 0755 ddns/reboot_modem ddns/e_rebooter $(DDNS_DESTDIR)
+	install -m 0644 ddns/e_rebooter.cron /etc/cron.d/e_rebooter
 
 install-motion :
 	@echo "Installing motion..."
