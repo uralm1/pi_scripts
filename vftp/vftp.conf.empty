@@ -13,7 +13,7 @@ port: 8021
 #daemon mode: 1
 #run in background: 1
 
-enable syslog: 0
+enable syslog: 1
 #error log: /tmp/ftpd.errors
 client logging: /tmp/ftpd.log
 #xfer logging: /tmp/xferlog
@@ -35,4 +35,6 @@ home directory: /tmp/asd
 
 retrieve rule: $filename =~ m#^DVR#
 store rule: $dirname =~ m#^/tmp/#
+delete rule: 0
+rename rule: 0
 

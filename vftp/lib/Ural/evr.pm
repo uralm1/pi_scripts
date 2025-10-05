@@ -17,7 +17,7 @@ use Image::Magick;
 use WWW::Telegram::BotAPI;
 #use Data::Dumper;
 
-my $ftp_root = '/tmp/asd';
+my $ftp_root = '/tmp/ftproot';
 my $debug_print_enabled = 1;
 
 my $cams = [
