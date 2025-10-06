@@ -6,8 +6,8 @@ use Fcntl qw(:flock);
 # Documentation browser under "/perldoc"
 #plugin 'PODRenderer';
 
-#app->mode('production');
-#app->log->level('info');
+app->mode('production');
+app->log->level('info');
 app->secrets(['efhthcdjfibvigfjdj']);
 
 plugin 'Config' => { file => 'vv.conf' };

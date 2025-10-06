@@ -7174,16 +7174,7 @@ sub _chdir
     # If the path starts with a "/" then it's an absolute path.
     if (substr ($path, 0, 1) eq "/")
       {
-	my $dirh_root = $self->root_directory_hook;
-
-        # Don't do anything when cwd root->root
-        if ($dirh->equals($dirh_root)) {
-	   my $path1 = $path;
-	   $path1 .= '/' if substr($path, -1, 1) ne '/';
-	   return $dirh if $path1 eq $dirh->pathname;
-	}
-
-	$dirh = $dirh_root;
+	$dirh = $self->root_directory_hook;
 	$path =~ s,^/+,,;
       }
 

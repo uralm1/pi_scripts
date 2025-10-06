@@ -1,0 +1,15 @@
+[Unit]
+Description=Vftp service
+After=network-online.target
+#Wants=network-online.target
+
+[Service]
+Type=exec
+ExecStart=/opt/vftp/vftp.pl
+WorkingDirectory=/opt/vftp
+#Restart=on-failure
+#RestartSec=60
+
+[Install]
+WantedBy=multi-user.target
+

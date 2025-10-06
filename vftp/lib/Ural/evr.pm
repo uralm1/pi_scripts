@@ -21,14 +21,14 @@ my $ftp_root = '/tmp/ftproot';
 my $debug_print_enabled = 1;
 
 my $cams = [
-{ dir => 'cam/c2', # relative to $ftp_root
+{ dir => "$ftp_root/cam/c2",
   dir_recursive => 1,
   shot_regex => qr#^.*\[R\].*\.jpg$#,
   motion_regex => qr#^.*\[M\].*\.jpg$#,
   eventcam => 1,
   keep_num => 80,
 },
-{ dir => 'cam',
+{ dir => "$ftp_root/cam",
   dir_recursive => 0,
   shot_regex => qr#^.*shot.*\.jpg$#,
   motion_regex => qr#^.*motion.*\.jpg$#,
@@ -44,13 +44,13 @@ sub debug_print($str) {
 
 sub create_directories() {
   for (@$cams) {
-    File::Path::make_path(File::Spec->catdir($ftp_root, $_->{dir}), {chmod => 0777});
+    File::Path::make_path($_->{dir}, {chmod => 0777});
   }
 }
 
 sub check_directories($root_dir) {
   for (@$cams) {
-    my $dir = File::Spec->catdir($root_dir, $ftp_root, $_->{dir});
+    my $dir = File::Spec->catdir($root_dir, $_->{dir});
     unless(-d $dir) {
       croak "$dir directory doesn't exist!";
     }
@@ -71,7 +71,7 @@ sub handle_file_store($file) {
       substr($fixed_file, 0, length($fixed_camdir), '');
     }
     $fixed_file =~ s{^/+}{};
-    debug_print "file argument fixed: $fixed_file";
+    debug_print "file argument fixed: $fixed_file (for $cam->{dir})";
 
     clean_cam_directories($cam, $fixed_file);
   }
@@ -81,10 +81,10 @@ sub handle_file_store($file) {
 sub clean_cam_directories($cam, $file_arg) {
   my (@s, @m);
   if ($cam->{dir_recursive}) {
-    process_recursive(File::Spec->catdir($ftp_root, $cam->{dir}), '',
+    process_recursive($cam->{dir}, '',
       $cam->{shot_regex}, $cam->{eventcam} ? $cam->{motion_regex} : undef, \@s, \@m);
   } else {
-    process_nr(File::Spec->catdir($ftp_root, $cam->{dir}),
+    process_nr($cam->{dir},
       $cam->{shot_regex}, $cam->{eventcam} ? $cam->{motion_regex} : undef, \@s, \@m);
   }
   ###debug_print Dumper(\@s, \@m);
@@ -92,7 +92,7 @@ sub clean_cam_directories($cam, $file_arg) {
   my $c = 1;
   for my $f (sort {$b cmp $a} @s) {
     #debug_print $f;
-    my $ff = untaint( File::Spec->catfile($ftp_root, $cam->{dir}, $f) );
+    my $ff = untaint( File::Spec->catfile($cam->{dir}, $f) );
     if ($c > 1 && $f ne $file_arg) {
       debug_print "unlinking $ff, ".npreview($ff);
       unlink $ff;
@@ -111,7 +111,7 @@ sub clean_cam_directories($cam, $file_arg) {
   $c = 1;
   for my $f (sort {$b cmp $a} @m) {
     #debug_print $f;
-    my $ff = untaint( File::Spec->catfile($ftp_root, $cam->{dir}, $f) );
+    my $ff = untaint( File::Spec->catfile($cam->{dir}, $f) );
     if ($c > $cam->{keep_num}) {
       debug_print "unlinking $ff, ".npreview($ff);
       unlink $ff;

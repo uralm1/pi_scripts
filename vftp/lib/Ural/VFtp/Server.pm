@@ -109,8 +109,7 @@ Hook: Return an instance of DirHandle corresponding to the root directory.
 
 sub root_directory_hook {
   my $self = shift;
-  # absolute paths are relative to home directory
-  return new Ural::VFtp::DirHandle($self, File::Spec->catfile($self->{home_directory}, ''));
+  return Ural::VFtp::DirHandle->new($self);
 }
 
 
