@@ -219,7 +219,6 @@ __DATA__
 <p><b><%= $_->{name} %></b>
 %== link_to 'Видеопоток' => url_for('stcamid', camid => $idx) => (class => 'camlink')
 % if ($_->{eventcam}) {
-%== link_to 'Old' => 'events' => (class => 'camlink')
 %== link_to "События" => url_for('evcamid', camid => $idx) => (class => 'camlink')
 % }
 </p>
@@ -231,8 +230,6 @@ __DATA__
 % } else {
 Файл камеры отсутствует<br>
 % }
-% my $mdurl = purlpath(config->{motion_dir_url});
-<a href="<%== urlfile($mdurl, $_->{motion_snapshotfile}) %>"><img class="shp" src="<%== urlfile($mdurl, npreview($_->{motion_snapshotfile})) %>" alt="<%== $_->{motion_snapshotfile} %>"></a>
 % }
 
 
