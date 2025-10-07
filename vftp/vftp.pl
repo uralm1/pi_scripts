@@ -14,7 +14,5 @@ if ($FindBin::Bin =~ /(.*)/) {
 use lib "$script_path/lib";
 
 use Ural::VFtp::Server;
-use Ural::evr;
 
-Ural::evr::create_directories();
 my $ftps = Ural::VFtp::Server->run(["-C=$FindBin::Bin/vftp.conf", '-s']);

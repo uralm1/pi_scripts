@@ -38,3 +38,32 @@ store rule: $dirname =~ m#^/tmp/#
 delete rule: 0
 rename rule: 0
 
+<Perl>
+my $ftp_root = $self->config('home directory');
+$config{telegram_config} = '/etc/openhab/things/telegram.things';
+
+$config{cams} = [
+{ dir => "$ftp_root/cam/c2",
+  dir_recursive => 1,
+  shot_regex => qr#^.*\[R\].*\.jpg$#,
+  motion_regex => qr#^.*\[M\].*\.jpg$#,
+  eventcam => 1,
+  keep_num => 80,
+  name => 'c2-dahua',
+  enable_notification => 1,
+  timestamp_file => "$ftp_root/c2_telegram.timestamp",
+  notification_interval => 3600,
+},
+{ dir => "$ftp_root/cam",
+  dir_recursive => 0,
+  shot_regex => qr#^.*shot.*\.jpg$#,
+  motion_regex => qr#^.*motion.*\.jpg$#,
+  eventcam => 1,
+  keep_num => 20,
+  name => 'c1-dlink',
+  enable_notification => 0,
+  timestamp_file => "$ftp_root/c1_telegram.timestamp",
+  notification_interval => 3600,
+},
+];
+</Perl>

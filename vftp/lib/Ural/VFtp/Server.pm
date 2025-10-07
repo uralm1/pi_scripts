@@ -23,8 +23,6 @@ use strict;
 use vars qw($VERSION);
 ( $VERSION ) = '$Revision: 1.0 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
-use File::Spec;
-
 use Net::FTPServer;
 use Ural::VFtp::FileHandle;
 use Ural::VFtp::DirHandle;
@@ -44,7 +42,8 @@ use vars qw(@ISA);
 
 sub post_configuration_hook {
   my $self = shift;
-  Ural::evr::check_directories($self->config("root directory"));
+  Ural::evr::get_evr_configuration($self);
+  Ural::evr::check_directories($self);
 }
 
 =pod
@@ -122,7 +121,7 @@ sub root_directory_hook {
 sub post_command_hook {
   my ($self, $cmd, $rest) = @_;
 
-  ###$self->log('err', "- $cmd: $rest -");
+  ###$self->log('info', "- $cmd: $rest -");
 
   #STOR, STOU, APPE commands modifies fs, but we only handle STOR
   if ($cmd eq 'STOR') {
