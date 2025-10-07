@@ -146,9 +146,12 @@ sub process_cam_directories($cam, $file_arg) {
       debug_print "generating motion preview for $ff";
       my $fp = make_preview($ff, '320x180');
 
-      if (my $t = check_timestamp($cam->{timestamp_file}, $cam->{notification_interval})) {
-	send_telegram( $fp, humaninfo($cam->{name}, get_file_mtime($ff)) );
-	update_timestamp($cam->{timestamp_file}, $t);
+      if ($cam->{enable_notification} && defined $telegram_token && defined $chat_id) {
+	if (my $t = check_timestamp($cam->{timestamp_file}, $cam->{notification_interval})) {
+	  if (send_telegram( $fp, humaninfo($cam->{name}, get_file_mtime($ff)) )) {
+	    update_timestamp($cam->{timestamp_file}, $t);
+	  }
+	}
       }
     }
   }
@@ -214,9 +217,7 @@ sub process_recursive($dir, $subdir, $shot_re, $motion_re, $s_ref, $m_ref) {
 sub untaint($data) {
   if ($data =~ /(.*)/) {
     return $1;
-  } else {
-    die 'Died horrible in untaint';
-  }
+  } else { die }
 }
 
 sub get_file_mtime($file) {
@@ -280,20 +281,22 @@ sub update_timestamp($timestamp_file, $time) {
 
 # send_telegram('/tmp/motion/rrr_preview.jpg', 'rrr file');
 sub send_telegram($file, $caption) {
-  return unless defined $telegram_token && defined $chat_id;
+  return undef unless defined $telegram_token && defined $chat_id;
 
   debug_print "sending notification to telegram for $file";
+  my $ret = 1;
   my $api = WWW::Telegram::BotAPI->new(token => $telegram_token);
 
   my $file_name = (File::Spec->splitpath($file))[2]; #basename $file
   if (-r $file) {
     my $r = eval { $api->sendPhoto({ chat_id => $chat_id, photo => { file => $file }, caption => $caption }) };
-    debug_print 'sendPhoto error: '.$api->parse_error->{msg} unless $r;
+    unless ($r) { debug_print 'sendPhoto error: '.$api->parse_error->{msg}; $ret = undef }
   } else {
     my $r = eval { $api->sendMessage({ chat_id => $chat_id, text => "Не обработал $file_name." }) };
-    debug_print 'sendMessage error: '.$api->parse_error->{msg} unless $r;
+    unless ($r) { debug_print 'sendMessage error: '.$api->parse_error->{msg}; $ret = undef }
   }
   undef $api;
+  return $ret;
 }
 
 1;
