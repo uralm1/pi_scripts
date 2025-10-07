@@ -28,6 +28,7 @@ WriteMakefile(
     'lib/Ural/VFtp/FileHandle.pm' => '$(INST_LIB)/Ural/VFtp/FileHandle.pm',
     'lib/Ural/VFtp/Server.pm' => '$(INST_LIB)/Ural/VFtp/Server.pm',
     'lib/IO/Scalar.pm' => '$(INST_LIB)/IO/Scalar.pm',
+    'lib/IO/WrapTie.pm' => '$(INST_LIB)/IO/WrapTie.pm',
     'lib/IO/LockedFile.pm' => '$(INST_LIB)/IO/LockedFile.pm',
     'lib/IO/LockedFile/Flock.pm' => '$(INST_LIB)/IO/LockedFile/Flock.pm',
     'lib/WWW/Telegram/BotAPI.pm' => '$(INST_LIB)/WWW/Telegram/BotAPI.pm',
