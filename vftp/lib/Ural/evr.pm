@@ -41,9 +41,13 @@ sub get_evr_configuration($self) {
   my @_cams = $self->config('cams');
   $cams = \@_cams;
 
+  unless ($self->config('time zone')) {
+    error_print "Timezone must be set correctly for notifications to work in right time.";
+  }
+
   my $telegram_config = $self->config('telegram config');
   my $fh = IO::File->new($telegram_config, 'r');
-  unless($fh) {
+  unless ($fh) {
     error_print "Telegram configuration file $telegram_config doesn't exist. Notifications will not work.";
   } else {
     while (<$fh>) {

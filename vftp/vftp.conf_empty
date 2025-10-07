@@ -32,6 +32,7 @@ pam authentication: 0
 user access control rule: $user_is_anonymous
 root directory: /
 home directory: /tmp/asd
+time zone: Asia/Yekaterinburg
 
 retrieve rule: $filename =~ m#^DVR#
 store rule: $dirname =~ m#^/tmp/#
@@ -40,7 +41,7 @@ rename rule: 0
 
 <Perl>
 my $ftp_root = $self->config('home directory');
-$config{telegram_config} = '/etc/openhab/things/telegram.things';
+$config{'telegram config'} = '/etc/openhab/things/telegram.things';
 
 $config{cams} = [
 { dir => "$ftp_root/cam/c2",
