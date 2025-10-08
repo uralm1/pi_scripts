@@ -105,7 +105,7 @@ sub process_nr($dir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
   opendir(my $dh, $dir) or die "$dir opendir failed";
 
   $s_ref->{file} = '' unless defined $s_ref->{file};
-  my $cnt = 0;
+  my $mcnt = 0;
   while (readdir $dh) {
     my $p = "$dir/$_";
     if (-f $p) {
@@ -126,14 +126,14 @@ sub process_nr($dir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
 	  file => $_,
 	  info => humaninfo($_, $mtime),
         };
-        ++$cnt;
+        ++$mcnt;
       }# else { say "Invalid $p"; }
     }
   }
 
   closedir($dh);
   $s_ref->{file} = undef if $s_ref->{file} eq '';
-  return $cnt;
+  return $mcnt;
 }
 
 sub process_recursive($dir, $subdir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
@@ -143,7 +143,7 @@ sub process_recursive($dir, $subdir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
   opendir(my $dh, $fulldir) or die "$fulldir opendir failed";
 
   $s_ref->{file} = '' unless defined $s_ref->{file};
-  my $cnt = 0;
+  my $mcnt = 0;
   while (readdir $dh) {
     my $p = "$fulldir/$_";
     my $subp = $subdir eq '' ? $_ : "$subdir/$_";
@@ -165,18 +165,18 @@ sub process_recursive($dir, $subdir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
 	  file => $subp,
 	  info => humaninfo($subp, $mtime),
         };
-        ++$cnt;
+        ++$mcnt;
       }# elsif (!m#^DVR#) {
 	#say "Invalid $p";
       #}
     } elsif (-d $p && m#^[^.]#) {
-      $cnt += process_recursive($dir, $subp, $shot_re, $motion_re, $s_ref, $dfh_ref);
+      $mcnt += process_recursive($dir, $subp, $shot_re, $motion_re, $s_ref, $dfh_ref);
     }
   }
 
   closedir($dh);
   $s_ref->{file} = undef if $s_ref->{file} eq '';
-  return $cnt;
+  return $mcnt;
 }
 
 sub get_file_mtime($file) {

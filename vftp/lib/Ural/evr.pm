@@ -27,13 +27,8 @@ my $cams;
 my $telegram_token;
 my $chat_id;
 
-
 sub debug_print($str) {
   say STDERR $str if DEBUG_PRINT_ENABLED;
-}
-
-sub error_print($str) {
-  say STDERR $str;
 }
 
 
@@ -41,14 +36,12 @@ sub get_evr_configuration($self) {
   my @_cams = $self->config('cams');
   $cams = \@_cams;
 
-  unless ($self->config('time zone')) {
-    error_print "Timezone must be set correctly for notifications to work in right time.";
-  }
+  warn "Timezone must be set correctly for notifications to work in right time.\n" unless $self->config('time zone');
 
   my $telegram_config = $self->config('telegram config');
   my $fh = IO::File->new($telegram_config, 'r');
   unless ($fh) {
-    error_print "Telegram configuration file $telegram_config doesn't exist. Notifications will not work.";
+    warn "Telegram configuration file $telegram_config doesn't exist. Notifications will not work.\n";
   } else {
     while (<$fh>) {
       if (!defined $chat_id && m/chatIds\s*=\s*["'][><]?([A-Za-z0-9:-]+)["']/xi) {
@@ -60,7 +53,7 @@ sub get_evr_configuration($self) {
     }
     undef $fh;
     unless (defined $telegram_token && defined $chat_id) {
-      error_print "Telegram configuration file $telegram_config doesn't include correct token or chat_id. Notifications will not work.";
+      warn "Telegram configuration file $telegram_config doesn't include correct token or chat_id. Notifications will not work.\n";
     }
   }
 }
@@ -159,7 +152,7 @@ sub process_cam_directories($cam, $file_arg) {
 sub process_nr($dir, $shot_re, $motion_re, $s_ref, $m_ref) {
   my $dh = IO::Dir->new($dir) or croak "$dir opendir failed";
 
-  my $cnt = 0;
+  my $mcnt = 0;
   while (defined($_ = $dh->read)) {
     my $p = "$dir/$_";
     if (-f $p) {
@@ -169,7 +162,7 @@ sub process_nr($dir, $shot_re, $motion_re, $s_ref, $m_ref) {
 	push @$s_ref, $_;
       } elsif (defined($motion_re) && m#$motion_re#) {
 	push @$m_ref, $_;
-        ++$cnt;
+        ++$mcnt;
       } else { 
 	debug_print "Invalid $p, deleting it";
 	unlink untaint($p);
@@ -178,7 +171,7 @@ sub process_nr($dir, $shot_re, $motion_re, $s_ref, $m_ref) {
   }
 
   undef $dh;
-  return $cnt;
+  return $mcnt;
 }
 
 sub process_recursive($dir, $subdir, $shot_re, $motion_re, $s_ref, $m_ref) {
@@ -187,29 +180,37 @@ sub process_recursive($dir, $subdir, $shot_re, $motion_re, $s_ref, $m_ref) {
 
   my $dh = IO::Dir->new($fulldir) or croak "$fulldir opendir failed";
 
-  my $cnt = 0;
+  my $mcnt = 0;
+  my $empty = 1;
   while (defined($_ = $dh->read)) {
     my $p = "$fulldir/$_";
     my $subp = $subdir eq '' ? $_ : "$subdir/$_";
     if (-f $p) {
       #debug_print $p;
+      $empty = 0;
       next if m#preview\.jpg$#;
       if (m#$shot_re#) {
         push @$s_ref, $subp;
       } elsif (defined($motion_re) && m#$motion_re#) {
         push @$m_ref, $subp;
-        ++$cnt;
+        ++$mcnt;
       } elsif (!m#^DVR#) {
 	debug_print "Invalid $p, deleting it";
 	unlink untaint($p);
       }
     } elsif (-d $p && m#^[^.]#) {
-      $cnt += process_recursive($dir, $subp, $shot_re, $motion_re, $s_ref, $m_ref);
+      $empty = 0;
+      $mcnt += process_recursive($dir, $subp, $shot_re, $motion_re, $s_ref, $m_ref);
     }
   }
-
   undef $dh;
-  return $cnt;
+
+  if ($empty && $subdir ne '') {
+    debug_print "Deleting empty directory $fulldir";
+    rmdir untaint($fulldir);
+  }
+
+  return $mcnt;
 }
 
 
@@ -246,13 +247,13 @@ sub make_preview($file, $geom) {
   # strange bug here: long filepathes got corrupted in Read so use fd
   my $fh = IO::LockedFile->new({block=>1,lock=>1}, $file, 'r');
   my $r = $image->Read(file=>\*$fh);
-  error_print "Read image returned $r" if $r;
+  warn "Read image returned $r" if $r;
   undef $fh;
   $image->Thumbnail(geometry=>$geom);
   $image->UnsharpMask(radius=>0, sigma=>.5);
   my $fp = npreview($file);
   $r = $image->Write($fp);
-  error_print "Write preview returned $r" if $r;
+  warn "Write preview returned $r" if $r;
   undef $image;
   return $fp;
 }
@@ -281,7 +282,7 @@ sub update_timestamp($timestamp_file, $time) {
     print $fh $time;
     undef $fh;
   } else {
-    error_print "Error updating timestamp file $timestamp_file: $!";
+    warn "Error updating timestamp file $timestamp_file: $!\n";
   }
 }
 
