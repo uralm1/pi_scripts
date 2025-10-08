@@ -118,10 +118,7 @@ sub process_cam_directories($cam, $file_arg) {
     #debug_print $f;
     my $ff = untaint( File::Spec->catfile($cam->{dir}, $f) );
     if ($c > 1 && $f ne $file_arg) {
-      my $fp = npreview($ff);
-      debug_print "unlinking $ff, $fp";
-      unlink $ff;
-      unlink $fp;
+      unlink_file_and_preview($ff);
     }
     ++$c;
 
@@ -130,18 +127,15 @@ sub process_cam_directories($cam, $file_arg) {
       debug_print "generating shot preview for $ff";
       make_preview($ff, '640x360');
     }
-  }
+  } # shot files loop
 
   # clean up motions
   $c = 1;
-  for my $f (sort {$b cmp $a} @m) {
+  for my $f (sort {$b cmp $a} @m) { # for non-event cam @m will be empty
     #debug_print $f;
     my $ff = untaint( File::Spec->catfile($cam->{dir}, $f) );
     if ($c > $cam->{keep_num}) {
-      my $fp = npreview($ff);
-      debug_print "unlinking $ff, $fp";
-      unlink $ff;
-      unlink $fp;
+      unlink_file_and_preview($ff);
     }
     ++$c;
 
@@ -156,10 +150,11 @@ sub process_cam_directories($cam, $file_arg) {
 	    update_timestamp($cam->{timestamp_file}, $t);
 	  }
 	}
-      }
+      } # notification if
     }
-  }
+  } # motion files loop
 }
+
 
 sub process_nr($dir, $shot_re, $motion_re, $s_ref, $m_ref) {
   my $dh = IO::Dir->new($dir) or croak "$dir opendir failed";
@@ -218,6 +213,13 @@ sub process_recursive($dir, $subdir, $shot_re, $motion_re, $s_ref, $m_ref) {
 }
 
 
+sub unlink_file_and_preview($file) {
+  my $fp = npreview($file);
+  debug_print "unlinking $file, $fp";
+  unlink $file;
+  unlink $fp;
+}
+
 sub untaint($data) {
   if ($data =~ /(.*)/) {
     return $1;
@@ -258,7 +260,7 @@ sub make_preview($file, $geom) {
 
 sub check_timestamp($timestamp_file, $notification_interval) {
   my ($min, $hour) = (localtime)[1,2];
-  debug_print "time is $hour:$min";
+  #debug_print "time is $hour:$min";
   return undef unless $hour >= 9 && $hour < 22;
     
   my $old_timestamp;
