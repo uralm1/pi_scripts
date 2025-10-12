@@ -6,8 +6,8 @@ use Fcntl qw(:flock);
 # Documentation browser under "/perldoc"
 #plugin 'PODRenderer';
 
-app->mode('production');
-app->log->level('info');
+#app->mode('production');
+#app->log->level('info');
 app->secrets(['efhthcdjfibvigfjdj']);
 
 plugin 'Config' => { file => 'vv.conf' };
@@ -23,8 +23,8 @@ hook(before_dispatch => sub($c) {
 }) if $ENV{MOJO_REVERSE_PROXY};
 
 helper purlpath => sub($c, $dir) { Mojo::URL->new($c->config->{program_url})->path($dir) };
-helper urlfile => sub($c, $url, $file) {
-  my $u = $url->clone;
+helper urlfile => sub($c, $dir, $file) {
+  my $u = Mojo::URL->new($dir);
   $u->path->trailing_slash(1);
   $u->path($file);
 };
@@ -224,8 +224,8 @@ __DATA__
 </p>
 % if (my $f = $_->{sf}{file}) {
 <div class="ev"><%= $_->{sf}{info} =%><br>
-% my $durl = purlpath($_->{dir_url});
-<a href="<%== urlfile($durl, $f) %>"><img class="shp" src="<%== urlfile($durl, npreview($f)) %>" alt="<%== $f %>"></a>
+% my $d = $_->{dir_url};
+<a href="<%== urlfile($d, $f) %>"><img class="shp" src="<%== urlfile($d, npreview($f)) %>" alt="<%== $f %>"></a>
 </div>
 % } else {
 Файл камеры отсутствует<br>
@@ -260,8 +260,8 @@ __DATA__
 %   my $fhref = $dfh->{$cur}->{$_};
 %   my $f = $fhref->{file};
 <div class="ev"><%= $fhref->{info} =%><br>
-% my $mdurl = purlpath(config->{motion_dir_url});
-%== link_to image(urlfile($mdurl, npreview($f)), alt => 'Event '.$fhref->{info}, (class => 'evp')) => urlfile($mdurl, $f)
+% my $md = config->{motion_dir_url};
+%== link_to image(urlfile($md, npreview($f)), alt => 'Event '.$fhref->{info}, (class => 'evp')) => urlfile($md, $f)
 </div>
 %   ++$c;
 % }
@@ -294,8 +294,8 @@ __DATA__
 %   my $fhref = $dfh->{$cur}->{$_};
 %   my $f = $fhref->{file};
 <div class="ev"><%= $fhref->{info} =%><br>
-% my $durl = purlpath($cam->{dir_url});
-%== link_to image(urlfile($durl, npreview($f)), alt => 'Event '.$fhref->{info}, (class => 'evp')) => urlfile($durl, $f)
+% my $d = $cam->{dir_url};
+%== link_to image(urlfile($d, npreview($f)), alt => 'Event '.$fhref->{info}, (class => 'evp')) => urlfile($d, $f)
 </div>
 %   ++$c;
 % }
