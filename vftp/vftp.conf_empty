@@ -53,7 +53,7 @@ $config{cams} = [
   name => 'c2-dahua',
   snapshot_preview_file => "$ftp_root/cam/c2_shot_preview.jpg", #must end with "preview"
   enable_notification => 1,
-  timestamp_file => "$ftp_root/c2_telegram.timestamp",
+  timestamp_file => "$ftp_root/cam/c2_telegram.timestamp",
   notification_interval => 3600,
 },
 { dir => "$ftp_root/cam/c1",
@@ -65,7 +65,7 @@ $config{cams} = [
   name => 'c1-dlink',
   snapshot_preview_file => "$ftp_root/cam/c1_shot_preview.jpg",
   enable_notification => 0,
-  timestamp_file => "$ftp_root/c1_telegram.timestamp",
+  timestamp_file => "$ftp_root/cam/c1_telegram.timestamp",
   notification_interval => 3600,
 },
 ];

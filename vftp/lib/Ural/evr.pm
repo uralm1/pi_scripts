@@ -164,7 +164,7 @@ sub process_nr($dir, $shot_re, $motion_re, $s_ref, $m_ref) {
       } elsif (defined($motion_re) && m#$motion_re#) {
 	push @$m_ref, $_;
         ++$mcnt;
-      } else { 
+      } else {
 	debug_print "Invalid $p, deleting it";
 	unlink untaint($p);
       }
@@ -263,7 +263,7 @@ sub check_timestamp($timestamp_file, $notification_interval) {
   my ($min, $hour) = (localtime)[1,2];
   #debug_print "time is $hour:$min";
   return undef unless $hour >= 9 && $hour < 22;
-    
+
   my $old_timestamp;
   if (my $fh = IO::File->new($timestamp_file, 'r')) {
     local $/;

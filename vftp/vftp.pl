@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use FindBin;
 my $script_path;
-BEGIN { 
+BEGIN {
 if ($FindBin::Bin =~ /(.*)/) {
   $script_path = $1;
 } else {
