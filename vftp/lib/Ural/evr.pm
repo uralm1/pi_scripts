@@ -111,14 +111,15 @@ sub process_cam_directories($cam, $file_arg) {
     #debug_print $f;
     my $ff = untaint( File::Spec->catfile($cam->{dir}, $f) );
     if ($c > 1 && $f ne $file_arg) {
-      unlink_file_and_preview($ff);
+      debug_print "unlinking $ff";
+      unlink $ff;
     }
     ++$c;
 
     # generate preview for shot
     if ($f eq $file_arg) {
       debug_print "generating shot preview for $ff";
-      make_preview($ff, '640x360');
+      make_preview($ff, '640x360', $cam->{snapshot_preview_file});
     }
   } # shot files loop
 
@@ -241,8 +242,8 @@ sub npreview($file) {
   return $file;
 }
 
-# make_preview('/tmp/motion/rrr.jpg', '640x360');
-sub make_preview($file, $geom) {
+# make_preview('/tmp/motion/rrr.jpg', '640x360', '/tmp/rrr_preview.jpg');
+sub make_preview($file, $geom, $preview_file = npreview($file)) {
   my $image = Image::Magick->new;
   # strange bug here: long filepathes got corrupted in Read so use fd
   my $fh = IO::LockedFile->new({block=>1,lock=>1}, $file, 'r');
@@ -251,11 +252,10 @@ sub make_preview($file, $geom) {
   undef $fh;
   $image->Thumbnail(geometry=>$geom);
   $image->UnsharpMask(radius=>0, sigma=>.5);
-  my $fp = npreview($file);
-  $r = $image->Write($fp);
+  $r = $image->Write($preview_file);
   warn "Write preview returned $r" if $r;
   undef $image;
-  return $fp;
+  return $preview_file;
 }
 
 

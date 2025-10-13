@@ -6,8 +6,8 @@ use Fcntl qw(:flock);
 # Documentation browser under "/perldoc"
 #plugin 'PODRenderer';
 
-#app->mode('production');
-#app->log->level('info');
+app->mode('production');
+app->log->level('info');
 app->secrets(['efhthcdjfibvigfjdj']);
 
 plugin 'Config' => { file => 'vv.conf' };
@@ -224,8 +224,7 @@ __DATA__
 </p>
 % if (my $f = $_->{sf}{file}) {
 <div class="ev"><%= $_->{sf}{info} =%><br>
-% my $d = $_->{dir_url};
-<a href="<%== urlfile($d, $f) %>"><img class="shp" src="<%== urlfile($d, npreview($f)) %>" alt="<%== $f %>"></a>
+<a href="<%== urlfile($_->{dir_url}, $f) %>"><img class="shp" src="<%== $_->{snapshot_preview_url} %>" alt="<%== $f %>"></a>
 </div>
 % } else {
 Файл камеры отсутствует<br>
