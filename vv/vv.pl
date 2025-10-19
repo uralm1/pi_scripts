@@ -306,7 +306,7 @@ __DATA__
 % my $cam = config->{cams}[$camid];
 <p><b>Видеопоток - <%= $cam->{name} %></b><br>
 %== link_to 'Возврат к камерам' => 'index' => (class => 'camlink')
-<br>
+<br><br>
 <video id="hls-video" width="<%== $cam->{width} %>" height="<%== $cam->{height} %>" controls muted autoplay></video>
 <script>
 function initHlsPlayer() {
