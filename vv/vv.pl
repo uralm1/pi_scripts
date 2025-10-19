@@ -79,7 +79,7 @@ get '/st/:camid' => [camid => qr/\d/] => sub($c) {
   my $cam = $c->config->{cams}[$c->param('camid')];
   return $c->render(text => 'Ошибка!') unless $cam;
 
-  $c->render(template => 'st', width => $cam->{width}, height => $cam->{height}, url => $c->purlpath($cam->{stream_url}));
+  $c->render(template => 'st', camid => $c->param('camid'));
 };
 
 
@@ -302,7 +302,42 @@ __DATA__
 @@ st.html.ep
 % title 'Видеопоток';
 % layout 'default';
-<iframe width="<%== $width %>" height="<%== $height %>" src="<%== $url %>" frameborder="0" allowfullscreen></iframe>
+<script src="<%== pdir %>/css/hls.min.js"></script>
+% my $cam = config->{cams}[$camid];
+<p><b>Видеопоток - <%= $cam->{name} %></b><br>
+%== link_to 'Возврат к камерам' => 'index' => (class => 'camlink')
+<br>
+<video id="hls-video" width="<%== $cam->{width} %>" height="<%== $cam->{height} %>" controls muted autoplay></video>
+<script>
+function initHlsPlayer() {
+  const video = document.getElementById('hls-video');
+  const hlsUrl = '<%== $cam->{stream_url} %>';
+  if (Hls.isSupported()) {
+    const hls = new Hls({
+      debug: false,
+      liveDurationInfinity: true,
+      enableWorker: true,
+      lowLatencyMode: true,
+      backBufferLength: 90
+    });
+    hls.loadSource(hlsUrl);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+      video.play();
+    });
+    hls.on(Hls.Events.ERROR, function(event, data) {
+      console.error('Hls error:', data);
+    });
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = hlsUrl;
+    //video.addEventListener('loadedmetadata', function() {video.play()});
+  } else {
+    alert('Browser does not support Hls video');
+  }
+}
+document.addEventListener('DOMContentLoaded', initHlsPlayer);
+</script>
+
 
 @@ layouts/default.html.ep
 <!DOCTYPE html>

@@ -17,7 +17,7 @@
       height => 720,
       # stream page address is '/st/cam-index'
       # event page address is '/ev/cam-index'
-      stream_url => '/vstream2/',
+      stream_url => '/hls/c2/v.m3u8',
       eventcam => 1,
     },
     { name => 'Камера DLink',
@@ -29,7 +29,7 @@
       snapshot_preview_url => '/mv1/c1_shot_preview.jpg',
       width => 640,
       height => 360,
-      stream_url => '/vstream1/',
+      stream_url => '/hls/c1/v.m3u8',
       eventcam => 1,
     },
   ],

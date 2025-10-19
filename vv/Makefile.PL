@@ -30,10 +30,11 @@ sub install {
   my $inherited = shift->SUPER::install(@_);
   return $inherited.<<"MAKE_FRAG";
 install::
-	\$(NOECHO) \$(ECHO) "** Installing configuration and css files..."
+	\$(NOECHO) \$(ECHO) "** Installing configuration and static files..."
 	\$(NOECHO) install -m 0644 vv.conf_empty \$(DESTDIR)$inst_dir/vv.conf_empty
 	\$(NOECHO) install -m 0755 -d \$(DESTDIR)$inst_dir/css
-	\$(NOECHO) install -m 0644 css/v.css \$(DESTDIR)$inst_dir/css/v.css
+	\$(NOECHO) install -m 0644 css/v.css \$(DESTDIR)$inst_dir/css/
+	\$(NOECHO) install -m 0644 css/hls.min.js css/hls.light.min.js \$(DESTDIR)$inst_dir/css/
 
 MAKE_FRAG
 }
