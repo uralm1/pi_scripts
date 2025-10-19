@@ -21,7 +21,7 @@ use WWW::Telegram::BotAPI;
 
 #BEGIN { $ENV{'TELEGRAM_BOTAPI_DEBUG'} = 1; }
 
-use constant DEBUG_PRINT_ENABLED => 1;
+use constant DEBUG_PRINT_ENABLED => 0;
 
 my $cams;
 my $telegram_token;
