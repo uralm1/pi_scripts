@@ -20,9 +20,9 @@
       width => 1280,
       height => 720,
       stream_url => '/hls/c2/v.m3u8',
-      restreamer => 'ffmpeg -hide_banner -fflags nobuffer -loglevel errors '.
+      restreamer => 'ffmpeg -hide_banner -fflags nobuffer -loglevel error '.
 '-t 900 '.
-'-rtsp_transport udp -i "rtsp://ural:tavp7234@192.168.1.23/cam/realmonitor?channel=1&subtype=0" '.
+'-rtsp_transport udp -i rtsp://ural:tavp7234@192.168.1.23/cam/realmonitor?channel=1&subtype=0 '.
 '-fps_mode 0 -copyts -vcodec copy -movflags frag_keyframe+empty_moov -an '.
 '-f hls -hls_flags delete_segments -hls_time 3 -hls_list_size 3 -hls_segment_type mpegts '.
 '/tmp/hls/c2/v.m3u8',
@@ -39,9 +39,9 @@
       width => 640,
       height => 360,
       stream_url => '/hls/c1/v.m3u8',
-      restreamer => 'ffmpeg -hide_banner -fflags nobuffer -loglevel errors '.
+      restreamer => 'ffmpeg -hide_banner -fflags nobuffer -loglevel error '.
 '-t 900 -analyzeduration 10000000 -probesize 30000000 -max_probe_packets 10000 '.
-'-rtsp_transport tcp -i "rtsp://ural:tavp7234@192.168.1.21/live2.sdp" '.
+'-rtsp_transport tcp -i rtsp://ural:tavp7234@192.168.1.21/live2.sdp '.
 '-fps_mode 0 -copyts -vcodec copy -movflags frag_keyframe+empty_moov -an '.
 '-f hls -hls_flags delete_segments -hls_time 10 -hls_list_size 3 -hls_segment_type mpegts '.
 '/tmp/hls/c1/v.m3u8',

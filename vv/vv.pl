@@ -342,11 +342,11 @@ __DATA__
 <p><b>Видеопоток - <%= $cam->{name} %></b><br>
 %== link_to 'Возврат к камерам' => 'index' => (class => 'camlink')
 </p>
-<p>Рестример:
+<p><b>Рестример:</b>
 % if (defined $restreamer_pid) {
 <span class="tgreen">работает (<%= $restreamer_pid %>)</span>.
 %== link_to 'Остановить' => url_for('ffctlcamid', camid => $camid)->query(stop => 1)
-% } else
+% } else {
 <span class="tred">не запущен</span>.
 %== link_to 'Запустить' => url_for('ffctlcamid', camid => $camid)->query(start => 1)
 % }
@@ -392,7 +392,7 @@ document.addEventListener('DOMContentLoaded', initHlsPlayer);
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %></title>
   <!--link rel="shortcut icon" href="<%== pdir %>/img/favicon.png"-->
-  <link rel="stylesheet" href="<%== pdir %>/css/v.css@2">
+  <link rel="stylesheet" href="<%== pdir %>/css/v.css?v=2">
 </head>
 <body>
 <%= content %>
