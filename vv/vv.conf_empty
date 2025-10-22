@@ -13,12 +13,19 @@
       motion_regex => qr#^.*\[M\].*\.jpg$#,
       dir_url => '/mv1/c2',
       snapshot_preview_url => '/mv1/c2_shot_preview.jpg', #must end with "preview"
+      eventcam => 1,
+      # event page address is '/ev/cam-index'
+      # stream page address is '/st/cam-index'
+      streamcam => 1,
       width => 1280,
       height => 720,
-      # stream page address is '/st/cam-index'
-      # event page address is '/ev/cam-index'
       stream_url => '/hls/c2/v.m3u8',
-      eventcam => 1,
+      restreamer => 'ffmpeg -hide_banner -fflags nobuffer -loglevel errors '.
+'-t 900 '.
+'-rtsp_transport udp -i "rtsp://ural:tavp7234@192.168.1.23/cam/realmonitor?channel=1&subtype=0" '.
+'-fps_mode 0 -copyts -vcodec copy -movflags frag_keyframe+empty_moov -an '.
+'-f hls -hls_flags delete_segments -hls_time 3 -hls_list_size 3 -hls_segment_type mpegts '.
+'/tmp/hls/c2/v.m3u8',
     },
     { name => 'Камера DLink',
       dir => '/tmp/ftproot/cam/c1',
@@ -27,10 +34,17 @@
       motion_regex => qr#^.*motion.*\.jpg$#,
       dir_url => '/mv1/c1',
       snapshot_preview_url => '/mv1/c1_shot_preview.jpg',
+      eventcam => 1,
+      streamcam => 1,
       width => 640,
       height => 360,
       stream_url => '/hls/c1/v.m3u8',
-      eventcam => 1,
+      restreamer => 'ffmpeg -hide_banner -fflags nobuffer -loglevel errors '.
+'-t 900 -analyzeduration 10000000 -probesize 30000000 -max_probe_packets 10000 '.
+'-rtsp_transport tcp -i "rtsp://ural:tavp7234@192.168.1.21/live2.sdp" '.
+'-fps_mode 0 -copyts -vcodec copy -movflags frag_keyframe+empty_moov -an '.
+'-f hls -hls_flags delete_segments -hls_time 10 -hls_list_size 3 -hls_segment_type mpegts '.
+'/tmp/hls/c1/v.m3u8',
     },
   ],
 };

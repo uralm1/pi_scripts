@@ -12,6 +12,7 @@ WriteMakefile(
   VERSION => '1.0',
   PREREQ_PM => {
     'Mojolicious' => '8.50',
+    'Proc::ProcessTable' => '0.632',
   },
   #test      => {TESTS => 't/*.t'},
   PREFIX => $inst_dir,

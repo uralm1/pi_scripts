@@ -2,6 +2,7 @@
 use Mojolicious::Lite -signatures;
 use POSIX qw(strftime);
 use Fcntl qw(:flock);
+use Proc::ProcessTable;
 
 # Documentation browser under "/perldoc"
 #plugin 'PODRenderer';
@@ -74,12 +75,34 @@ get '/ev/:camid' => [camid => qr/\d{1,2}/] => sub($c) {
   $c->render(template => 'ev', dfh => $cam->{dfh}, camid => $c->param('camid'), dp => $c->param('d'), total => $cam->{totalev});
 };
 
-# /st/0 .. /st/9 streamer helper
+# /st/0 .. /st/9 stream pages
 get '/st/:camid' => [camid => qr/\d/] => sub($c) {
   my $cam = $c->config->{cams}[$c->param('camid')];
-  return $c->render(text => 'Ошибка!') unless $cam;
+  return $c->render(text => 'Ошибка!') unless $cam && $cam->{streamcam};
 
-  $c->render(template => 'st', camid => $c->param('camid'));
+  my $restreamer_pid = check_restreamer($cam->{restreamer});
+  $c->render(template => 'st', camid => $c->param('camid'), restreamer_pid => $restreamer_pid);
+};
+
+# /ffctl/0 .. /ffctl/9 start/stop restreamer
+get '/ffctl/:camid' => [camid => qr/\d/] => sub($c) {
+  my $cam = $c->config->{cams}[$c->param('camid')];
+  return $c->render(text => 'Ошибка!') unless $cam && $cam->{streamcam};
+
+  my $start = $c->param('start');
+  my $stop = $c->param('stop');
+  my $pid;
+  if (defined $stop && $stop) {
+    $pid = check_restreamer($cam->{restreamer});
+    return $c->render(text => 'ERR STOP, ALREADY STOPPED!') unless $pid;
+    return $c->render(text => "TODO STOP PID: $pid!");
+  } elsif (defined $start && $start) {
+    $pid = check_restreamer($cam->{restreamer});
+    return $c->render(text => "ERR START, ALREADY STARTED PID: $pid!") if $pid;
+    return $c->render(text => 'TODO START!');
+  } else {
+    return $c->render(text => 'Ошибка!');
+  }
 };
 
 
@@ -209,6 +232,16 @@ sub check_locked($file) {
 }
 
 
+sub check_restreamer($cmd) {
+  my $pt = Proc::ProcessTable->new('enable_ttys' => 0, 'cache_ttys' => 0);
+
+  my @r = grep {$_->cmndline eq $cmd} @{$pt->table};
+
+  return undef unless @r;
+  return $r[0]->pid;
+}
+
+
 __DATA__
 
 @@ index.html.ep
@@ -217,7 +250,9 @@ __DATA__
 % my $idx;
 % while (($idx, $_) = each @{config->{cams}}) {
 <p><b><%= $_->{name} %></b>
+% if ($_->{streamcam}) {
 %== link_to 'Видеопоток' => url_for('stcamid', camid => $idx) => (class => 'camlink')
+% }
 % if ($_->{eventcam}) {
 %== link_to "События" => url_for('evcamid', camid => $idx) => (class => 'camlink')
 % }
@@ -306,7 +341,16 @@ __DATA__
 % my $cam = config->{cams}[$camid];
 <p><b>Видеопоток - <%= $cam->{name} %></b><br>
 %== link_to 'Возврат к камерам' => 'index' => (class => 'camlink')
-<br><br>
+</p>
+<p>Рестример:
+% if (defined $restreamer_pid) {
+<span class="tgreen">работает (<%= $restreamer_pid %>)</span>.
+%== link_to 'Остановить' => url_for('ffctlcamid', camid => $camid)->query(stop => 1)
+% } else
+<span class="tred">не запущен</span>.
+%== link_to 'Запустить' => url_for('ffctlcamid', camid => $camid)->query(start => 1)
+% }
+</p>
 <video id="hls-video" width="<%== $cam->{width} %>" height="<%== $cam->{height} %>" controls muted autoplay></video>
 <script>
 function initHlsPlayer() {
@@ -348,7 +392,7 @@ document.addEventListener('DOMContentLoaded', initHlsPlayer);
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %></title>
   <!--link rel="shortcut icon" href="<%== pdir %>/img/favicon.png"-->
-  <link rel="stylesheet" href="<%== pdir %>/css/v.css">
+  <link rel="stylesheet" href="<%== pdir %>/css/v.css@2">
 </head>
 <body>
 <%= content %>
