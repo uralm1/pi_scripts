@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 use Mojolicious::Lite -signatures;
-use POSIX qw(strftime);
+use POSIX qw(strftime setsid _exit);
 use Fcntl qw(:flock);
 use Proc::ProcessTable;
 
@@ -56,8 +56,8 @@ get '/events' => sub($c) {
       my $k = "$2$3$4";
       $dfh{$k} = { info => "$4.$3.$2" } unless defined $dfh{$k};
       $dfh{$k}{"$2$3$4$5$6$7$1"} = {
-	file => $_,
-	info => "$5:$6:$7 $4.$3.$2 - $1",
+        file => $_,
+        info => "$5:$6:$7 $4.$3.$2 - $1",
       };
       $cnt++;
     }
@@ -80,28 +80,33 @@ get '/st/:camid' => [camid => qr/\d/] => sub($c) {
   my $cam = $c->config->{cams}[$c->param('camid')];
   return $c->render(text => 'Ошибка!') unless $cam && $cam->{streamcam};
 
-  my $restreamer_pid = check_restreamer($cam->{restreamer});
+  my $restreamer_pid = find_restreamer($cam->{restreamer});
   $c->render(template => 'st', camid => $c->param('camid'), restreamer_pid => $restreamer_pid);
 };
 
 # /ffctl/0 .. /ffctl/9 start/stop restreamer
 get '/ffctl/:camid' => [camid => qr/\d/] => sub($c) {
-  my $cam = $c->config->{cams}[$c->param('camid')];
+  my $camid = $c->param('camid');
+  my $cam = $c->config->{cams}[$camid];
   return $c->render(text => 'Ошибка!') unless $cam && $cam->{streamcam};
 
   my $start = $c->param('start');
   my $stop = $c->param('stop');
   my $pid;
   if (defined $stop && $stop) {
-    $pid = check_restreamer($cam->{restreamer});
-    return $c->render(text => 'ERR STOP, ALREADY STOPPED!') unless $pid;
-    return $c->render(text => "TODO STOP PID: $pid!");
+    $pid = find_restreamer($cam->{restreamer});
+    return $c->render(text => 'Ошибка, уже остановлено!') unless $pid;
+    stop_restreamer($pid);
+    $c->redirect_to('stcamid', camid => $camid);
+
   } elsif (defined $start && $start) {
-    $pid = check_restreamer($cam->{restreamer});
-    return $c->render(text => "ERR START, ALREADY STARTED PID: $pid!") if $pid;
-    return $c->render(text => 'TODO START!');
+    $pid = find_restreamer($cam->{restreamer});
+    return $c->render(text => "Ошибка, уже запущено PID: $pid!") if $pid;
+    start_restreamer($cam->{restreamer});
+    $c->redirect_to('stcamid', camid => $camid);
+
   } else {
-    return $c->render(text => 'Ошибка!');
+    $c->render(text => 'Ошибка!');
   }
 };
 
@@ -138,16 +143,16 @@ sub process_nr($dir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
       my $mtime = get_file_mtime($p);
       if (m#$shot_re#) {
         if (($_ cmp $s_ref->{file}) > 0) {
-	  $s_ref->{file} = $_;
-	  $s_ref->{info} = humaninfo($_, $mtime);
-	}
+          $s_ref->{file} = $_;
+          $s_ref->{info} = humaninfo($_, $mtime);
+        }
       } elsif (defined($motion_re) && m#$motion_re#) {
-	next unless defined $mtime;
-	my $k = YMDkey($mtime);
+        next unless defined $mtime;
+        my $k = YMDkey($mtime);
         $dfh_ref->{$k} = { info => humanDMY($mtime) } unless defined $dfh_ref->{$k};
         $dfh_ref->{$k}{$_} = {
-	  file => $_,
-	  info => humaninfo($_, $mtime),
+          file => $_,
+          info => humaninfo($_, $mtime),
         };
         ++$mcnt;
       }# else { say "Invalid $p"; }
@@ -178,19 +183,19 @@ sub process_recursive($dir, $subdir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
       if (m#$shot_re#) {
         if (($subp cmp $s_ref->{file}) > 0) {
           $s_ref->{file} = $subp;
-	  $s_ref->{info} = humaninfo($subp, $mtime);
-	}
+          $s_ref->{info} = humaninfo($subp, $mtime);
+        }
       } elsif (defined($motion_re) && m#$motion_re#) {
-	next unless defined $mtime;
-	my $k = YMDkey($mtime);
+        next unless defined $mtime;
+        my $k = YMDkey($mtime);
         $dfh_ref->{$k} = { info => humanDMY($mtime) } unless defined $dfh_ref->{$k};
         $dfh_ref->{$k}{$subp} = {
-	  file => $subp,
-	  info => humaninfo($subp, $mtime),
+          file => $subp,
+          info => humaninfo($subp, $mtime),
         };
         ++$mcnt;
       }# elsif (!m#^DVR#) {
-	#say "Invalid $p";
+        #say "Invalid $p";
       #}
     } elsif (-d $p && m#^[^.]#) {
       $mcnt += process_recursive($dir, $subp, $shot_re, $motion_re, $s_ref, $dfh_ref);
@@ -232,13 +237,41 @@ sub check_locked($file) {
 }
 
 
-sub check_restreamer($cmd) {
+sub find_restreamer($cmd) {
   my $pt = Proc::ProcessTable->new('enable_ttys' => 0, 'cache_ttys' => 0);
 
   my @r = grep {$_->cmndline eq $cmd} @{$pt->table};
 
   return undef unless @r;
   return $r[0]->pid;
+}
+
+sub start_restreamer($cmd) {
+  my $cpid = fork;
+  die unless defined $cpid;
+
+  unless ($cpid) {
+    # child process 1
+    setsid();
+    $cpid = fork;
+    die unless defined $cpid;
+    if ($cpid) {
+      #say 'child 1 exiting';
+      _exit(0);
+    }
+    # child process 2
+    exec($cmd) or print STDERR "Couldn't exec: $!";
+    _exit(1);
+
+  } else {
+    #say "parent process, child pid = $cpid";
+    waitpid($cpid, 0);
+  }
+}
+
+sub stop_restreamer($pid) {
+  #
+  return
 }
 
 
