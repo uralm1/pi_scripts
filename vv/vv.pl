@@ -97,11 +97,13 @@ get '/ffctl/:camid' => [camid => qr/\d/] => sub($c) {
     $pid = find_restreamer($cam->{restreamer});
     return $c->render(text => 'Ошибка, уже остановлено!') unless $pid;
     stop_restreamer($pid);
+    unlink($cam->{stream_file});
     $c->redirect_to('stcamid', camid => $camid);
 
   } elsif (defined $start && $start) {
     $pid = find_restreamer($cam->{restreamer});
     return $c->render(text => "Ошибка, уже запущено PID: $pid!") if $pid;
+    unlink($cam->{stream_file});
     start_restreamer($cam->{restreamer});
     $c->redirect_to('stcamid', camid => $camid);
 
@@ -240,6 +242,7 @@ sub check_locked($file) {
 sub find_restreamer($cmd) {
   my $pt = Proc::ProcessTable->new('enable_ttys' => 0, 'cache_ttys' => 0);
 
+  $cmd =~ s/"|'//g;
   my @r = grep {$_->cmndline eq $cmd} @{$pt->table};
 
   return undef unless @r;
@@ -260,7 +263,10 @@ sub start_restreamer($cmd) {
       _exit(0);
     }
     # child process 2
-    exec($cmd) or print STDERR "Couldn't exec: $!";
+    open STDIN, '<', '/dev/null';
+    open STDOUT, '>', '/dev/null';
+    open STDERR, '>', '/dev/null';
+    exec($cmd) or die "couldn't exec: $!";
     _exit(1);
 
   } else {
@@ -270,8 +276,7 @@ sub start_restreamer($cmd) {
 }
 
 sub stop_restreamer($pid) {
-  #
-  return
+  kill 'SIGTERM', $pid;
 }
 
 
