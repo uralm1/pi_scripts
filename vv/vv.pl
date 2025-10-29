@@ -81,8 +81,8 @@ get '/st/:camid' => [camid => qr/\d/] => sub($c) {
   my $cam = $c->config->{cams}[$c->param('camid')];
   return $c->render(text => 'Ошибка!') unless $cam && $cam->{streamcam};
 
-  my $restreamer_pid = find_ffmpeg($cam->{restreamer});
-  $c->render(template => 'st', camid => $c->param('camid'), restreamer_pid => $restreamer_pid);
+  my $pid = find_ffmpeg($cam->{restreamer});
+  $c->render(template => 'st', camid => $c->param('camid'), restreamer_pid => $pid);
 };
 
 # /ffctl/0 .. /ffctl/9 start/stop restreamer
@@ -142,7 +142,7 @@ sub process_nr($dir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
     if (-f $p) {
       #say $p;
       next if check_locked($p);
-      next if m#preview\.jpg$#;
+      next if /preview\.jpg$/;
       my $mtime = get_file_mtime($p);
       if (m#$shot_re#) {
         if (($_ cmp $s_ref->{file}) > 0) {
@@ -182,7 +182,7 @@ sub process_recursive($dir, $subdir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
     if (-f $p) {
       #say $p;
       next if check_locked($p);
-      next if m#preview\.jpg$#;
+      next if /preview\.jpg$/;
       my $mtime = get_file_mtime($p);
       if (m#$shot_re#) {
         if (($subp cmp $s_ref->{file}) > 0) {
@@ -201,7 +201,7 @@ sub process_recursive($dir, $subdir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
       }# elsif (!m#^DVR#) {
         #say "Invalid $p";
       #}
-    } elsif (-d $p && m#^[^.]#) {
+    } elsif (-d $p) {
       $mcnt += process_recursive($dir, $subp, $shot_re, $motion_re, $s_ref, $dfh_ref);
     }
   }
@@ -401,11 +401,11 @@ __DATA__
 </p>
 <p><b>FFMPEG:</b>
 % if (defined $restreamer_pid) {
-<span class="tgreen">работает (<%= $restreamer_pid %>)</span>.
+<span class="tgreen">Работает (<%= $restreamer_pid %>)</span>.
 %== link_to '[Остановить]' => url_for('ffctlcamid', camid => $camid)->query(stop => 1)
-<br>Возможно необходимо обновить страницу для воспроизведения видео.<br>
+<br>Обновите страницу для воспроизведения видео.<br>
 % } else {
-<span class="tred">остановлен</span>.
+<span class="tred">Остановлен</span>.
 %== link_to '[Запустить]' => url_for('ffctlcamid', camid => $camid)->query(start => 1)
 % }
 </p>

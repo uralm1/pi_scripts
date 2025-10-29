@@ -155,10 +155,11 @@ sub process_nr($dir, $shot_re, $motion_re, $s_ref, $m_ref) {
 
   my $mcnt = 0;
   while (defined($_ = $dh->read)) {
+    next if /^\.\.?$/;
     my $p = "$dir/$_";
     if (-f $p) {
       #debug_print $p;
-      next if m#preview\.jpg$#;
+      next if /preview\.jpg$/;
       if (m#$shot_re#) {
 	push @$s_ref, $_;
       } elsif (defined($motion_re) && m#$motion_re#) {
@@ -184,12 +185,13 @@ sub process_recursive($dir, $subdir, $shot_re, $motion_re, $s_ref, $m_ref) {
   my $mcnt = 0;
   my $empty = 1;
   while (defined($_ = $dh->read)) {
+    next if /^\.\.?$/;
     my $p = "$fulldir/$_";
     my $subp = $subdir eq '' ? $_ : "$subdir/$_";
     if (-f $p) {
       #debug_print $p;
       $empty = 0;
-      next if m#preview\.jpg$#;
+      next if /preview\.jpg$/;
       if (m#$shot_re#) {
         push @$s_ref, $subp;
       } elsif (defined($motion_re) && m#$motion_re#) {
@@ -199,7 +201,7 @@ sub process_recursive($dir, $subdir, $shot_re, $motion_re, $s_ref, $m_ref) {
 	debug_print "Invalid $p, deleting it";
 	unlink untaint($p);
       }
-    } elsif (-d $p && m#^[^.]#) {
+    } elsif (-d $p) {
       $empty = 0;
       $mcnt += process_recursive($dir, $subp, $shot_re, $motion_re, $s_ref, $m_ref);
     }
