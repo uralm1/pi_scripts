@@ -2,6 +2,7 @@
 use Mojolicious::Lite -signatures;
 use POSIX qw(strftime setsid _exit);
 use Fcntl qw(:flock);
+use Time::HiRes qw(usleep);
 use Proc::ProcessTable;
 
 # Documentation browser under "/perldoc"
@@ -80,7 +81,7 @@ get '/st/:camid' => [camid => qr/\d/] => sub($c) {
   my $cam = $c->config->{cams}[$c->param('camid')];
   return $c->render(text => 'Ошибка!') unless $cam && $cam->{streamcam};
 
-  my $restreamer_pid = find_restreamer($cam->{restreamer});
+  my $restreamer_pid = find_ffmpeg($cam->{restreamer});
   $c->render(template => 'st', camid => $c->param('camid'), restreamer_pid => $restreamer_pid);
 };
 
@@ -94,17 +95,16 @@ get '/ffctl/:camid' => [camid => qr/\d/] => sub($c) {
   my $stop = $c->param('stop');
   my $pid;
   if (defined $stop && $stop) {
-    $pid = find_restreamer($cam->{restreamer});
+    $pid = find_ffmpeg($cam->{restreamer});
     return $c->render(text => 'Ошибка, уже остановлено!') unless $pid;
-    stop_restreamer($pid);
-    unlink($cam->{stream_file});
+    stop_ffmpeg($pid);
     $c->redirect_to('stcamid', camid => $camid);
 
   } elsif (defined $start && $start) {
-    $pid = find_restreamer($cam->{restreamer});
+    $pid = find_ffmpeg($cam->{restreamer});
     return $c->render(text => "Ошибка, уже запущено PID: $pid!") if $pid;
-    unlink($cam->{stream_file});
-    start_restreamer($cam->{restreamer});
+    clean_hls_dir($cam->{stream_dir});
+    start_ffmpeg($cam->{restreamer}, "/tmp/ffmpeg${camid}.log");
     $c->redirect_to('stcamid', camid => $camid);
 
   } else {
@@ -137,6 +137,7 @@ sub process_nr($dir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
   $s_ref->{file} = '' unless defined $s_ref->{file};
   my $mcnt = 0;
   while (readdir $dh) {
+    next if /^\.\.?$/;
     my $p = "$dir/$_";
     if (-f $p) {
       #say $p;
@@ -175,6 +176,7 @@ sub process_recursive($dir, $subdir, $shot_re, $motion_re, $s_ref, $dfh_ref) {
   $s_ref->{file} = '' unless defined $s_ref->{file};
   my $mcnt = 0;
   while (readdir $dh) {
+    next if /^\.\.?$/;
     my $p = "$fulldir/$_";
     my $subp = $subdir eq '' ? $_ : "$subdir/$_";
     if (-f $p) {
@@ -239,7 +241,7 @@ sub check_locked($file) {
 }
 
 
-sub find_restreamer($cmd) {
+sub find_ffmpeg($cmd) {
   my $pt = Proc::ProcessTable->new('enable_ttys' => 0, 'cache_ttys' => 0);
 
   $cmd =~ s/"|'//g;
@@ -249,7 +251,7 @@ sub find_restreamer($cmd) {
   return $r[0]->pid;
 }
 
-sub start_restreamer($cmd) {
+sub start_ffmpeg($cmd, $logfile) {
   my $cpid = fork;
   die unless defined $cpid;
 
@@ -265,7 +267,7 @@ sub start_restreamer($cmd) {
     # child process 2
     open STDIN, '<', '/dev/null';
     open STDOUT, '>', '/dev/null';
-    open STDERR, '>', '/dev/null';
+    open STDERR, '>', $logfile;
     exec($cmd) or die "couldn't exec: $!";
     _exit(1);
 
@@ -275,10 +277,27 @@ sub start_restreamer($cmd) {
   }
 }
 
-sub stop_restreamer($pid) {
-  kill 'SIGTERM', $pid;
+sub stop_ffmpeg($pid) {
+  kill 'TERM', $pid;
+  my $stopped = undef;
+  for (1..10) {
+    if (kill(0, $pid) == 0) { $stopped = 1; last }
+    usleep(500_000);
+  }
+  kill 'KILL', $pid unless $stopped;
 }
 
+sub clean_hls_dir($dir) {
+  opendir(my $dh, $dir) or die "$dir opendir failed";
+  while (readdir $dh) {
+    next if /^\.\.?$/;
+    my $p = "$dir/$_";
+    if (-f $p && /\.ts$|\.m3u8$/) {
+      unlink $p;
+    }
+  }
+  closedir($dh);
+}
 
 __DATA__
 
@@ -380,13 +399,14 @@ __DATA__
 <p><b>Видеопоток - <%= $cam->{name} %></b><br>
 %== link_to 'Возврат к камерам' => 'index' => (class => 'camlink')
 </p>
-<p><b>Рестример:</b>
+<p><b>FFMPEG:</b>
 % if (defined $restreamer_pid) {
 <span class="tgreen">работает (<%= $restreamer_pid %>)</span>.
-%== link_to 'Остановить' => url_for('ffctlcamid', camid => $camid)->query(stop => 1)
+%== link_to '[Остановить]' => url_for('ffctlcamid', camid => $camid)->query(stop => 1)
+<br>Возможно необходимо обновить страницу для воспроизведения видео.<br>
 % } else {
-<span class="tred">не запущен</span>.
-%== link_to 'Запустить' => url_for('ffctlcamid', camid => $camid)->query(start => 1)
+<span class="tred">остановлен</span>.
+%== link_to '[Запустить]' => url_for('ffctlcamid', camid => $camid)->query(start => 1)
 % }
 </p>
 <video id="hls-video" width="<%== $cam->{width} %>" height="<%== $cam->{height} %>" controls muted autoplay></video>
