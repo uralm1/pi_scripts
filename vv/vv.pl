@@ -404,7 +404,7 @@ __DATA__
 %== link_to '[Запустить]' => url_for('stcamid', camid => $camid)->query(start => 1)
 % }
 </p>
-<video id="hls-video" width="<%== $cam->{width} %>" height="<%== $cam->{height} %>" controls muted autoplay></video>
+<video id="hls-video" width="<%== $cam->{width} %>" height="<%== $cam->{height} %>" controls muted<%== defined $restreamer_pid ? ' autoplay':'' %>></video>
 <script>
 function initHlsPlayer() {
   const video = document.getElementById('hls-video');
@@ -420,7 +420,7 @@ function initHlsPlayer() {
     hls.loadSource(hlsUrl);
     hls.attachMedia(video);
     hls.on(Hls.Events.MANIFEST_PARSED, function() {
-      video.play();
+      <%== defined $restreamer_pid ? 'video.play()' : '' %>
     });
     hls.on(Hls.Events.ERROR, function(event, data) {
       console.error('Hls error:', data);
