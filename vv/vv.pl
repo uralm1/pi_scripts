@@ -76,42 +76,37 @@ get '/ev/:camid' => [camid => qr/\d{1,2}/] => sub($c) {
   $c->render(template => 'ev', dfh => $cam->{dfh}, camid => $c->param('camid'), dp => $c->param('d'), total => $cam->{totalev});
 };
 
-# /st/0 .. /st/9 stream pages
+# /st/0 .. /st/9 stream pages and/or start-stop ffmpeg
 get '/st/:camid' => [camid => qr/\d/] => sub($c) {
-  my $cam = $c->config->{cams}[$c->param('camid')];
-  return $c->render(text => 'Ошибка!') unless $cam && $cam->{streamcam};
-
-  my $pid = find_ffmpeg($cam->{restreamer});
-  $c->render(template => 'st', camid => $c->param('camid'), restreamer_pid => $pid);
-};
-
-# /ffctl/0 .. /ffctl/9 start/stop restreamer
-get '/ffctl/:camid' => [camid => qr/\d/] => sub($c) {
   my $camid = $c->param('camid');
   my $cam = $c->config->{cams}[$camid];
   return $c->render(text => 'Ошибка!') unless $cam && $cam->{streamcam};
 
   my $start = $c->param('start');
   my $stop = $c->param('stop');
-  my $pid;
+  my $pid = find_ffmpeg($cam->{restreamer});
+
   if (defined $stop && $stop) {
-    $pid = find_ffmpeg($cam->{restreamer});
-    return $c->render(text => 'Ошибка, уже остановлено!') unless $pid;
+    return $c->render(text => 'Ошибка, ffmpeg уже остановлен!') unless $pid;
     stop_ffmpeg($pid);
-    $c->redirect_to('stcamid', camid => $camid);
+    return $c->redirect_to('stcamid', camid => $camid);
 
   } elsif (defined $start && $start) {
-    $pid = find_ffmpeg($cam->{restreamer});
-    return $c->render(text => "Ошибка, уже запущено PID: $pid!") if $pid;
-    clean_hls_dir($cam->{stream_dir});
-    start_ffmpeg($cam->{restreamer}, "/tmp/ffmpeg${camid}.log");
-    $c->redirect_to('stcamid', camid => $camid);
-
-  } else {
-    $c->render(text => 'Ошибка!');
+    unless ($pid) {
+      clean_hls_dir($cam->{stream_dir});
+      start_ffmpeg($cam->{restreamer}, "/tmp/ffmpeg${camid}.log");
+      return $c->redirect_to('stcamid', camid => $camid);
+    } else {
+      if ($start eq '2') {
+        return $c->redirect_to('stcamid', camid => $camid);
+      } else {
+        return $c->render(text => "Ошибка, ffmpeg уже запущен PID: $pid!");
+      }
+    }
   }
-};
 
+  $c->render(template => 'st', camid => $camid, restreamer_pid => $pid);
+};
 
 app->start;
 exit 0;
@@ -308,7 +303,7 @@ __DATA__
 % while (($idx, $_) = each @{config->{cams}}) {
 <p><b><%= $_->{name} %></b>
 % if ($_->{streamcam}) {
-%== link_to 'Видеопоток' => url_for('stcamid', camid => $idx) => (class => 'camlink')
+%== link_to 'Видеопоток' => url_for('stcamid', camid => $idx)->query(start => 2) => (class => 'camlink')
 % }
 % if ($_->{eventcam}) {
 %== link_to "События" => url_for('evcamid', camid => $idx) => (class => 'camlink')
@@ -402,11 +397,11 @@ __DATA__
 <p><b>FFMPEG:</b>
 % if (defined $restreamer_pid) {
 <span class="tgreen">Работает (<%= $restreamer_pid %>)</span>.
-%== link_to '[Остановить]' => url_for('ffctlcamid', camid => $camid)->query(stop => 1)
+%== link_to '[Остановить]' => url_for('stcamid', camid => $camid)->query(stop => 1)
 <br>Обновите страницу для воспроизведения видео.<br>
 % } else {
 <span class="tred">Остановлен</span>.
-%== link_to '[Запустить]' => url_for('ffctlcamid', camid => $camid)->query(start => 1)
+%== link_to '[Запустить]' => url_for('stcamid', camid => $camid)->query(start => 1)
 % }
 </p>
 <video id="hls-video" width="<%== $cam->{width} %>" height="<%== $cam->{height} %>" controls muted autoplay></video>
