@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# json: { "em_sequence": 4 }
+#
 
 url='https://example.github.io/hidden.json'
 mark_file=/var/tmp/e_rebooter.mark
@@ -7,6 +10,12 @@ function reboot_system {
   #echo 'Rebooting the system'
   sleep 10
   /sbin/shutdown -r --no-wall now
+}
+
+function reboot_modem {
+  #echo 'Rebooting the modem'
+  sleep 2
+  { echo "reboot"; sleep 2; } | telnet 192.168.8.1
 }
 
 function rewrite_markfile {
@@ -47,6 +56,7 @@ fi
 #echo $secdiff
 [[ $secdiff -ne 0 ]] && rewrite_markfile
 
+[[ $secdiff -eq 2 ]] && reboot_modem
 [[ $secdiff -eq 3 ]] && reboot_system
 
 exit 0
