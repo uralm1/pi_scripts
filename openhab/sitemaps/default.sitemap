@@ -81,6 +81,7 @@ sitemap default label="Автоматика" {
       }
       Frame label="Аварийные команды" {
         Switch item=c2_relay_12 labelcolor=["red"]
+        Switch item=reboot_modem labelcolor=["red"]
         Switch item=reboot labelcolor=["red"]
         Switch item=reboot_check labelcolor=["red"]
       }

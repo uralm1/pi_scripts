@@ -2,3 +2,4 @@
 # Every command needs to be listed on a separate line below.
 /etc/openhab/misc/reboot.sh
 /etc/openhab/misc/reboot_check.sh
+/etc/openhab/misc/reboot_modem.sh

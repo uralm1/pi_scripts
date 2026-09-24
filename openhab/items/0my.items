@@ -12,7 +12,8 @@ DateTime night_time "Ночь в [%1$tH:%1$tM]" <moon> {channel="astro:sun:home_
 
 DateTime system_time "System Time [%1$tH:%1$tM %1$td.%1$tm.%1$tY]" <none> (gsysinfo)
 
-Number:Dimensionless cpu_load "CPU Load" (gsysinfo) {channel="systeminfo:computer:rpi:cpu#load", unit="%"}
+Number:Dimensionless cpu_load "CPU Load" (gsysinfo) {channel="systeminfo:computer:rpi:cpu#load"}
+//Number:Dimensionless cpu_load "CPU Load" (gsysinfo) {channel="systeminfo:computer:rpi:cpu#load", unit="%"}
 //Number cpu_load1 "Load1" (gsysinfo) {channel="systeminfo:computer:rpi:cpu#load1"}
 //Number cpu_load5 "Load5" (gsysinfo) {channel="systeminfo:computer:rpi:cpu#load5"}
 //Number cpu_load15 "Load15" (gsysinfo) {channel="systeminfo:computer:rpi:cpu#load15"}
@@ -24,3 +25,4 @@ Number:DataAmount memory_total "Total memory" (gsysinfo) {channel="systeminfo:co
 
 Switch reboot "Перезагрузка" {channel="exec:command:reboot:run"}
 Switch reboot_check "Перезагрузка с проверкой" {channel="exec:command:reboot_check:run"}
+Switch reboot_modem "Перезагрузка модема" {channel="exec:command:reboot_modem:run"}
